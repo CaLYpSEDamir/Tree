@@ -98,6 +98,36 @@ class TreeBST(object):
         return ""
 
         # def remove(self, root, val);
+		
+    def traversing(self, l):
+		if l[0] is None:
+			return
+		x = []
+		for node in l:
+			print node.val if node else 'None'
+			x.append(getattr(node, 'left', None))
+			x.append(getattr(node, 'right', None))
+		print x
+		self.traversing(x)
+		
+	def delete(self, val, root):
+		
+		l, r = root.left, root.right
+		
+		if val == root.val:
+			if not left and not right:
+				root.val = None
+				return
+			if left and not right:
+				
+			
+			
+		elif val < root.val:
+			delete(self, val, root.left)
+		elif val > root.val:
+			delete(self, val, root.left)
+			
+		
 
 
 if __name__ == "__main__":
@@ -114,6 +144,7 @@ if __name__ == "__main__":
     # print tr.contains(tr.root, 5)
 
     print tr
+    tr.traversing([tr.root, ])
 
 
 
