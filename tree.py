@@ -97,37 +97,38 @@ class TreeBST(object):
               '-'*(2*n/4-1)+str(self.root.right.left.val)+'-'*(2*n/4-1)+str(self.root.right.right.val)
         return ""
 
-        # def remove(self, root, val);
-		
     def traversing(self, l):
-		if l[0] is None:
-			return
-		x = []
-		for node in l:
-			print node.val if node else 'None'
-			x.append(getattr(node, 'left', None))
-			x.append(getattr(node, 'right', None))
-		print x
-		self.traversing(x)
-		
-	def delete(self, val, root):
-		
-		l, r = root.left, root.right
-		
-		if val == root.val:
-			if not left and not right:
-				root.val = None
-				return
-			if left and not right:
-				
-			
-			
-		elif val < root.val:
-			delete(self, val, root.left)
-		elif val > root.val:
-			delete(self, val, root.left)
-			
-		
+        if l[0] is None:
+            return
+        x = []
+        for node in l:
+            print node.val if node else 'None'
+            x.append(getattr(node, 'left', None))
+            x.append(getattr(node, 'right', None))
+        print x
+        self.traversing(x)
+
+    def delete(self, val, root):
+
+        l, r = root.left, root.right
+        #
+        if val == root.val:
+            if not left and not right:
+                root.val = None
+                return
+            if l and r:
+                pass
+        elif val < root.val:
+            if not l:
+                print 'No such element in tree'
+            if l.val != val:
+                delete(self, val, l)
+            else:
+                
+        elif val > root.val:
+            delete(self, val, root.left)
+
+
 
 
 if __name__ == "__main__":
