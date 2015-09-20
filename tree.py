@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 # class Node(object):
 #
 #     def __init__(self, val=None, left=None, right=None):
@@ -50,6 +50,15 @@ class Node(object):
         self.left = None
         self.right = None
 
+    def has_childs(self):
+        return self.left or self.right
+
+    def has_both_childs(self):
+        return self.left and self.right
+
+    def get_left_or_right(self):
+        return self.left or self.right
+
 
 class TreeBST(object):
     """
@@ -58,6 +67,9 @@ class TreeBST(object):
 
     def __init__(self):
         self.root = Node()
+
+    def get_min(self, root):
+        return root.val if not root.left else self.get_min(root.left)
 
     def add(self, root, val):
         # initial root
@@ -91,10 +103,12 @@ class TreeBST(object):
 
     def __str__(self):
         n = 20
-        print ' '*(n-1)+str(self.root.val)
-        print ' '*(n/2-1)+str(self.root.left.val)+'-'*(n-1)+str(self.root.right.val)
-        print ' '*(n/4-1)+str(self.root.left.left.val)+'-'*(n-2*(n/4)-1)+str(self.root.left.right.val)+\
-              '-'*(2*n/4-1)+str(self.root.right.left.val)+'-'*(2*n/4-1)+str(self.root.right.right.val)
+        print ' '*(n-1)+str(getattr(self.root, 'val', 'N'))
+        print ' '*(n/2-1)+str(getattr(self.root.left, 'val', 'N'))+'-'*(n-1)+str(getattr(self.root.right, 'val', 'N'))
+        print ' '*(n/4-1)+str(getattr(self.root.left.left, 'val', 'N'))+\
+              '-'*(n-2*(n/4)-1)+str(getattr(self.root.left.right, 'val', 'N'))+\
+              '-'*(2*n/4-1)+str(getattr(self.root.right.left, 'val', 'N'))+\
+              '-'*(2*n/4-1)+str(getattr(self.root.right.right, 'val', 'N'))
         return ""
 
     def traversing(self, l):
@@ -102,34 +116,45 @@ class TreeBST(object):
             return
         x = []
         for node in l:
-            print node.val if node else 'None'
-            x.append(getattr(node, 'left', None))
-            x.append(getattr(node, 'right', None))
+            x.append(getattr(getattr(node, 'left', None), 'val', None))
+            x.append(getattr(getattr(node, 'right', None), 'val', None))
         print x
         self.traversing(x)
 
     def delete(self, val, root):
-
+        if root.val is None:
+            print 'Tree is empty'
+            return
         l, r = root.left, root.right
-        #
+
+        # чисто для корня
         if val == root.val:
-            if not left and not right:
+            if not l and not r:
                 root.val = None
                 return
             if l and r:
                 pass
-        elif val < root.val:
-            if not l:
+        else:
+            child, is_left = (l, True) if val < root.val else (r, False)
+            if not child:
                 print 'No such element in tree'
-            if l.val != val:
-                delete(self, val, l)
+            elif child.val != val:
+                self.delete(val, child)
             else:
-                
-        elif val > root.val:
-            delete(self, val, root.left)
-
-
-
+                if not child.has_childs():
+                    if is_left:
+                        root.left = None
+                    else:
+                        root.right = None
+                elif child.has_both_childs():
+                    mini = self.get_min(child.right)
+                    self.delete(mini, child)
+                    child.val = mini
+                else:
+                    if is_left:
+                        root.left = child.left or child.right
+                    else:
+                        root.right = child.left or child.right
 
 if __name__ == "__main__":
     tr = TreeBST()
@@ -145,48 +170,12 @@ if __name__ == "__main__":
     # print tr.contains(tr.root, 5)
 
     print tr
-    tr.traversing([tr.root, ])
+    # tr.traversing([tr.root, ])
 
+    tr.delete(3, tr.root)
+    print tr
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # print tr.get_min(tr.root)
+    # tr.delete(3, tr.root)
 
 
