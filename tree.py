@@ -111,15 +111,26 @@ class TreeBST(object):
               '-'*(2*n/4-1)+str(getattr(self.root.right.right, 'val', 'N'))
         return ""
 
-    def traversing(self, l):
-        if l[0] is None:
-            return
-        x = []
-        for node in l:
-            x.append(getattr(getattr(node, 'left', None), 'val', None))
-            x.append(getattr(getattr(node, 'right', None), 'val', None))
-        print x
-        self.traversing(x)
+    def get_tree_height(self, li):
+        new_li = []
+        for el in li:
+            new_li.append(getattr(el, 'left', None))
+            new_li.append(getattr(el, 'right', None))
+        if any(new_li):
+            return self.get_tree_height(new_li)
+        else:
+            return len(li)
+
+    def traversing2(self, li):
+        gen = (str(getattr(x, 'val', 'N')) for x in li)
+        li_str = ' '.join(gen)
+        print li_str
+        new_li = []
+        for el in li:
+            new_li.append(getattr(el, 'left', None))
+            new_li.append(getattr(el, 'right', None))
+        if any(new_li):
+            self.traversing2(new_li)
 
     def delete(self, val, root):
         if root.val is None:
@@ -158,22 +169,32 @@ class TreeBST(object):
 
 if __name__ == "__main__":
     tr = TreeBST()
+    # tr.add(tr.root, 5)
+    # tr.add(tr.root, 3)
+    # tr.add(tr.root, 7)
+    # tr.add(tr.root, 4)
+    # tr.add(tr.root, 6)
+    # tr.add(tr.root, 1)
+    # tr.add(tr.root, 9)
+
+    tr.add(tr.root, 9)
     tr.add(tr.root, 5)
-    tr.add(tr.root, 3)
     tr.add(tr.root, 7)
     tr.add(tr.root, 4)
     tr.add(tr.root, 6)
-    tr.add(tr.root, 1)
-    tr.add(tr.root, 9)
+    tr.add(tr.root, 8)
 
     # print tr.contains(tr.root, 3)
     # print tr.contains(tr.root, 5)
 
-    print tr
-    # tr.traversing([tr.root, ])
+    # print tr
+    # tr.traversing2([tr.root, ])
+    # tr.delete(5, tr.root)
+    # tr.traversing2([tr.root, ])
+    print tr.get_tree_height([tr.root, ])
 
-    tr.delete(3, tr.root)
-    print tr
+    # tr.delete(3, tr.root)
+    # print tr
 
     # print tr.get_min(tr.root)
     # tr.delete(3, tr.root)
