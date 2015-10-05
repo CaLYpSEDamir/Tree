@@ -184,19 +184,7 @@ if __name__ == "__main__":
     tr.add(tr.root, 6)
     tr.add(tr.root, 8)
 
-    # print tr.contains(tr.root, 3)
-    # print tr.contains(tr.root, 5)
-
-    # print tr
-    # tr.traversing2([tr.root, ])
-    # tr.delete(5, tr.root)
-    # tr.traversing2([tr.root, ])
     print tr.get_tree_height([tr.root, ])
 
-    # tr.delete(3, tr.root)
-    # print tr
-
-    # print tr.get_min(tr.root)
-    # tr.delete(3, tr.root)
 
 
