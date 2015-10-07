@@ -43,19 +43,21 @@ class AVLTree(object):
                     self.change_w_and_check(root.parent, root)
                 else:
                     self.add(root.right, val)
-
+    i=0
     def traversing(self, li):
-        gen = ((str(getattr(x, 'val', 'N'))
-                +'('+str(getattr(x, 'w', 'N'))+')'
-                +'('+str(getattr(x, 'type', 'N'))+')') for x in li)
-        li_str = ' '.join(gen)
-        print li_str
-        new_li = []
-        for el in li:
-            new_li.append(getattr(el, 'left', None))
-            new_li.append(getattr(el, 'right', None))
-        if any(new_li):
-            self.traversing(new_li)
+        if AVLTree.i<5:
+            gen = ((str(getattr(x, 'val', 'N'))
+                    +'('+str(getattr(x, 'w', 'N'))+')'
+                    +'('+str(getattr(x, 'type', 'N'))+')') for x in li)
+            li_str = ' '.join(gen)
+            print li_str
+            new_li = []
+            for el in li:
+                new_li.append(getattr(el, 'left', None))
+                new_li.append(getattr(el, 'right', None))
+            if any(new_li):
+                AVLTree.i+=1
+                self.traversing(new_li)
 
     def change_w_and_check(self, parent, node):
         w1 = node.w
@@ -78,8 +80,11 @@ class AVLTree(object):
                 print 'left_rotate start', parent.val, node.val
                 self.left_rotate(parent, node)
             else:  # w1==-1
+                print 'start 2;-1'
+                print node.val, node.left.val, parent.val
                 self.right_rotate(node, node.left)
-                self.left_rotate(node.parent, node.parent.parent)
+                print node.val
+                # self.left_rotate(node.parent, node.parent.parent)
         else:  # p_w==-2
             if w1 == -1:
                 self.right_rotate(parent, node)
@@ -89,8 +94,8 @@ class AVLTree(object):
         node.parent = s_parent
         if not s_parent:
             self.root = node
+            self.root.type = None
         else:
-            s_parent.right = node
             if parent.type == 'l':
                 s_parent.left = node
                 node.type = 'l'
@@ -100,6 +105,7 @@ class AVLTree(object):
         parent.parent = node
         parent.right = node.left
         node.left = parent
+        parent.type = 'l'
         parent.w = 0
         node.w = 0
 
@@ -108,6 +114,7 @@ class AVLTree(object):
         node.parent = s_parent
         if not s_parent:
             self.root = node
+            self.root.type = None
         else:
             if parent.type == 'l':
                 s_parent.left = node
@@ -118,13 +125,14 @@ class AVLTree(object):
         parent.parent = node
         parent.left = node.right
         node.right = parent
+        parent.type = 'r'
         parent.w = 0
         node.w = 0
 
 if __name__ == "__main__":
     avl = AVLTree()
-    avl.add(avl.root, 3)
     avl.add(avl.root, 1)
+    avl.add(avl.root, 3)
     avl.add(avl.root, 5)
     avl.add(avl.root, 6)
     avl.add(avl.root, 7)
