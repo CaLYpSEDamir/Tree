@@ -77,19 +77,19 @@ class AVLTree(object):
             self.change_w_and_check(parent.parent, parent)
         elif p_w == 2:
             if w1 == 1:
-                print 'left_rotate start', parent.val, node.val
                 self.left_rotate(parent, node)
             else:  # w1==-1
                 print 'start 2;-1'
-                print node.val, node.left.val, parent.val
-                self.right_rotate(node, node.left)
-                print node.val
-                # self.left_rotate(node.parent, node.parent.parent)
+                self.right_rotate(node, node.left, 1)
+                self.left_rotate(node.parent.parent, node.parent)
         else:  # p_w==-2
             if w1 == -1:
                 self.right_rotate(parent, node)
+            else: #w1==1
+                self.left_rotate(node, node.right, -1)
+                self.right_rotate(node.parent.parent, node.parent)
 
-    def left_rotate(self, parent, node):
+    def left_rotate(self, parent, node, w=0):
         s_parent = parent.parent
         node.parent = s_parent
         if not s_parent:
@@ -106,10 +106,10 @@ class AVLTree(object):
         parent.right = node.left
         node.left = parent
         parent.type = 'l'
-        parent.w = 0
-        node.w = 0
+        parent.w = w
+        node.w = w
 
-    def right_rotate(self, parent, node):
+    def right_rotate(self, parent, node, w=0):
         s_parent = parent.parent
         node.parent = s_parent
         if not s_parent:
@@ -126,15 +126,12 @@ class AVLTree(object):
         parent.left = node.right
         node.right = parent
         parent.type = 'r'
-        parent.w = 0
-        node.w = 0
+        parent.w = w
+        node.w = w
 
 if __name__ == "__main__":
     avl = AVLTree()
-    avl.add(avl.root, 1)
-    avl.add(avl.root, 3)
-    avl.add(avl.root, 5)
-    avl.add(avl.root, 6)
-    avl.add(avl.root, 7)
-    avl.add(avl.root, 4)
+    x = [5, 6, 2, 1, 3, 4]
+    for i in x:
+        avl.add(avl.root, i)
     avl.traversing([avl.root, ])
