@@ -268,6 +268,36 @@ class AVLTree(object):
             parent.w = 0
             node.w = 0
 
+    def left_rotate_for_del(self, parent):
+
+        node = parent.right
+
+        s_parent = parent.parent
+        node.parent = s_parent
+        if not s_parent:
+            self.root = node
+            self.root.type = None
+        else:
+            if parent.type == 'l':
+                s_parent.left = node
+                node.type = 'l'
+            elif parent.type == 'r':
+                s_parent.right = node
+                node.type = 'r'
+        parent.parent = node
+        parent.right = node.left
+        if node.left:
+            node.left.type = 'r'
+        node.left = parent
+        parent.type = 'l'
+
+        if parent.left:
+            parent.w = 1
+            node.w = -1
+        else:
+            parent.w = 0
+            node.w = 0
+
     def balance_for_deletion(self, parent):
         p_w = parent.w
         if p_w in [-1, 1]:
@@ -326,7 +356,7 @@ class AVLTree(object):
 if __name__ == "__main__":
     avl = AVLTree()
     # x = [5, 6, 2, 1, 3, 4, 7, 8, 9, 10, 11, ]
-    x = [4, 2, 6, 1, ]
+    x = [4, 2, 6, , ]
     for i in x:
         avl.add(avl.root, i)
 
