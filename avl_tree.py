@@ -238,7 +238,10 @@ class AVLTree(object):
         spaces = AVLTree.get_spaces(count, 7)
         self.traversing([self.root, ], spaces)
 
-    def right_rotate_for_del(self, parent, node, w=0):
+    def right_rotate_for_del(self, parent):
+
+        node = parent.left
+
         s_parent = parent.parent
         node.parent = s_parent
         if not s_parent:
@@ -265,9 +268,29 @@ class AVLTree(object):
             parent.w = 0
             node.w = 0
 
-    def balance_for_deletion(self, parent, node):
-        if parent.w == -2:
-            self.right_rotate_for_del(parent, node)
+    def balance_for_deletion(self, parent):
+        p_w = parent.w
+        if p_w in [-1, 1]:
+            return
+
+        elif p_w == 0:
+            # дошли до корня
+            if parent.type is None:
+                return
+            elif parent.type == 'l':
+                parent.parent.w += 1
+                self.balance_for_deletion(parent.parent)
+            else:  # right
+                parent.parent.w -= 1
+                self.balance_for_deletion(parent.parent)
+
+        elif parent.w == -2:
+            l_w = parent.left.w
+            if l_w in [-1, 0]:
+                self.right_rotate_for_del(parent)
+            else:  # l_w == 1
+                self.left_rotate_for_del(parent.left)  # parent.left, parent.left.right
+                self.right_rotate_for_del(parent)
 
     def delete(self, tree, val):
         if tree.root.val is None:
@@ -289,13 +312,13 @@ class AVLTree(object):
                 if typ == 'l':
                     par.left = None
                     par.w += 1
-                    child = par.right
+                    # child = par.right
                 else:  # right
                     par.right = None
                     par.w -= 1
-                    child = par.left
+                    # child = par.left
 
-                self.balance_for_deletion(par, child)
+                self.balance_for_deletion(par)
 
 
 
@@ -303,8 +326,7 @@ class AVLTree(object):
 if __name__ == "__main__":
     avl = AVLTree()
     # x = [5, 6, 2, 1, 3, 4, 7, 8, 9, 10, 11, ]
-    x = [6, 4, 7, 3, 5]
-    # x = [4,2,6,1,3,5,7]
+    x = [4, 2, 6, 1, ]
     for i in x:
         avl.add(avl.root, i)
 
@@ -312,7 +334,7 @@ if __name__ == "__main__":
 
     avl.show()
 
-    avl.delete(avl, 7)
+    avl.delete(avl, 6)
     # avl.traversing2([avl.root])
     print 80*'-'
     avl.show()
