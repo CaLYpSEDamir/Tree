@@ -235,10 +235,39 @@ class AVLTree(object):
 
     def show(self):
         count = self.get_nodes_count(self.root)
-        print 'count', count
-        spaces = AVLTree.get_spaces(count, 10)
-        print spaces
+        spaces = AVLTree.get_spaces(count, 7)
         self.traversing([self.root, ], spaces)
+
+    def right_rotate_for_del(self, parent, node, w=0):
+        s_parent = parent.parent
+        node.parent = s_parent
+        if not s_parent:
+            self.root = node
+            self.root.type = None
+        else:
+            if parent.type == 'l':
+                s_parent.left = node
+                node.type = 'l'
+            elif parent.type == 'r':
+                s_parent.right = node
+                node.type = 'r'
+        parent.parent = node
+        parent.left = node.right
+        if node.right:
+            node.right.type = 'l'
+        node.right = parent
+        parent.type = 'r'
+
+        if parent.left:
+            parent.w = -1
+            node.w = 1
+        else:
+            parent.w = 0
+            node.w = 0
+
+    def balance_for_deletion(self, parent, node):
+        if parent.w == -2:
+            self.right_rotate_for_del(parent, node)
 
     def delete(self, tree, val):
         if tree.root.val is None:
@@ -256,11 +285,17 @@ class AVLTree(object):
             if typ is None:
                 tree.root = Node()
                 return
-            elif typ == 'l':
-                par.w += 1
-            else:  # right
-                par.w -= 1
+            else:
+                if typ == 'l':
+                    par.left = None
+                    par.w += 1
+                    child = par.right
+                else:  # right
+                    par.right = None
+                    par.w -= 1
+                    child = par.left
 
+                self.balance_for_deletion(par, child)
 
 
 
@@ -268,7 +303,7 @@ class AVLTree(object):
 if __name__ == "__main__":
     avl = AVLTree()
     # x = [5, 6, 2, 1, 3, 4, 7, 8, 9, 10, 11, ]
-    x = [5, 6, 4, 3, ]
+    x = [6, 4, 7, 3, 5]
     # x = [4,2,6,1,3,5,7]
     for i in x:
         avl.add(avl.root, i)
@@ -277,9 +312,11 @@ if __name__ == "__main__":
 
     avl.show()
 
-    # avl.delete(avl, 5)
-
-    # avl.show()
+    avl.delete(avl, 7)
+    # avl.traversing2([avl.root])
+    print 80*'-'
+    avl.show()
+    print 80*'-'
 
 
 
