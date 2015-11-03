@@ -124,16 +124,31 @@ class AVLTree(object):
         node.w = w
 
     @staticmethod
+    def get_nodes_count(root):
+        result = []
+        childs = [root, ]
+        while childs:
+            result.extend(childs)
+            new_childs = []
+            for n in childs:
+                new_childs.extend([n.left, n.right])
+            childs = filter(None, new_childs)
+
+        return len(result)
+
+    @staticmethod
     def get_spaces(node_count, space_count):
+        if not node_count:
+            return []
         log_lower = int(math.log(node_count, 2))
         h = log_lower + 1
-        last_row_count = 2**log_lower
+        last_row_count = 2**(log_lower+1)
 
         # last level
         last_level = [space_count*i for i in xrange(last_row_count)]
         spaces = [last_level, ]
 
-        for i in range(log_lower):
+        for i in range(log_lower+1):
             new_level = []
             data = spaces[i]
             data_len = len(data)
@@ -145,6 +160,8 @@ class AVLTree(object):
         return spaces[::-1]
 
     def process(self, items):
+        if not items:
+            return items
         if len(items) == 1:
             return items
         first = items.pop(0)
@@ -155,13 +172,17 @@ class AVLTree(object):
         return new_items
 
     def traversing(self, li, spaces):
-        s = self.process(spaces.pop(0))
+        # print li, 'li'
+        if spaces:
+            s = self.process(spaces.pop(0))
+        else:
+            s = [0, ]
         res = zip(li, s)
-        gen = (((y-7 if j else y)*' '+str(getattr(x_, 'val', 'N')) +
+        gen = (((y-8 if j else y)*' '+str(getattr(x_, 'val', 'N')) +
                 '('+str(getattr(x_, 'w', 'N'))+')' +
                 '('+str(getattr(x_, 'type', 'N'))+')')
                for j, (x_, y) in enumerate(res)
-                )
+            )
 
         li_str = ' '.join(gen)
 
@@ -174,16 +195,92 @@ class AVLTree(object):
         if any(new_li):
             self.traversing(new_li, spaces)
 
+    def traversing2(self, li):
+        # print li, 'li'
+
+        gen = ((str(getattr(x_, 'val', 'N')) +
+                '('+str(getattr(x_, 'w', 'N'))+')' +
+                '('+str(getattr(x_, 'type', 'N'))+')')
+               for x_ in li)
+
+        li_str = ' '.join(gen)
+
+        print li_str
+
+        new_li = []
+        for el in li:
+            new_li.append(getattr(el, 'left', None))
+            new_li.append(getattr(el, 'right', None))
+        if any(new_li):
+            self.traversing2(new_li)
+
+    def get_node(self, root, val):
+        r_v = root.val
+        if root.val is None:
+            node = None
+        else:
+            if r_v > val:
+                if root.left:
+                    node = self.get_node(root.left, val)
+                else:
+                    return None
+            elif r_v < val:
+                if root.right:
+                    node = self.get_node(root.right, val)
+                else:
+                    return None
+            else:
+                return root
+        return node
+
+    def show(self):
+        count = self.get_nodes_count(self.root)
+        print 'count', count
+        spaces = AVLTree.get_spaces(count, 10)
+        print spaces
+        self.traversing([self.root, ], spaces)
+
+    def delete(self, tree, val):
+        if tree.root.val is None:
+            print 'Tree is empty!'
+            return
+        node = self.get_node(tree.root, val)
+        if not node:
+            print 'No such element to delete!'
+            return
+        # print node
+
+        l, r, typ, par = node.left, node.right, node.type, node.parent
+        if not l and not r:
+            # если удаляем корень без детей, то сносим дерево
+            if typ is None:
+                tree.root = Node()
+                return
+            elif typ == 'l':
+                par.w += 1
+            else:  # right
+                par.w -= 1
+
+
+
+
 
 if __name__ == "__main__":
     avl = AVLTree()
-    x = [5, 6, 2, 1, 3, 4, 7, 8, 9, 10, 11, ]
+    # x = [5, 6, 2, 1, 3, 4, 7, 8, 9, 10, 11, ]
+    x = [5, 6, 4, 3, ]
+    # x = [4,2,6,1,3,5,7]
     for i in x:
         avl.add(avl.root, i)
 
-    spaces = AVLTree.get_spaces(len(x), 12)
+    # avl.traversing2([avl.root])
 
-    avl.traversing([avl.root, ], spaces)
+    avl.show()
+
+    # avl.delete(avl, 5)
+
+    # avl.show()
+
 
 
 

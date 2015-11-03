@@ -1,46 +1,4 @@
 # -*- coding: utf-8 -*-
-# class Node(object):
-#
-#     def __init__(self, val=None, left=None, right=None):
-#
-#         self.val = val
-#         self.left = left
-#         self.right = right
-#
-#
-# class BstTree(object):
-#
-#     def __init__(self):
-#         self.root = Node()
-#
-#     def add(self, node, val):
-#         if not node.val:
-#             node.val = val
-#             node.left = Node()
-#             node.right = Node()
-#         else:
-#             if node.val > val:
-#                 self.add(node.left, val)
-#             elif node.val < val:
-#                 self.add(node.right, val)
-#
-#     def __str__(self):
-#         print 'Tree val', self.root.val
-#         print self.root.val, 'left', self.root.left.val
-#         print self.root.val, 'right', self.root.right.val
-#         print 'Tree right', self.root.right, self.root.right.left.val
-#         print 'Tree right', self.root.right, self.root.right.right.val
-#         return ''
-#
-# if __name__=="__main__":
-#
-#     bst = BstTree()
-#
-#     bst.add(bst.root, 5)
-#     bst.add(bst.root, 3)
-#     bst.add(bst.root, 6)
-#
-#     print bst
 
 
 class Node(object):
