@@ -5,13 +5,22 @@ import math
 
 class Node(object):
 
-    def __init__(self, val=None, type=None, parent=None):
+    def __init__(self, val=None, type=None, parent=None,
+                 x1=None, y1=None, x2=None, y2=None, pol_id=None, a=None, b=None):
         self.val = val
         self.w = 0
         self.left = None
         self.right = None
         self.parent = parent
         self.type = type
+
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+        self.pol_id = pol_id
+        self.a = a
+        self.b = b
 
     def __str__(self):
         return '({0}, {1}, {2})'.format(self.val, self.type, self.w)
