@@ -6,7 +6,9 @@ import math
 class Node(object):
 
     def __init__(self, val=None, type=None, parent=None,
-                 x1=None, y1=None, x2=None, y2=None, pol_id=None, a=None, b=None):
+                 # fixme надо хранить х2, для сравнения сколько вышло и заходит
+                 x2=None,
+                 a=None, b=None, pol_id=None):
         self.val = val
         self.w = 0
         self.left = None
@@ -14,10 +16,6 @@ class Node(object):
         self.parent = parent
         self.type = type
 
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
         self.pol_id = pol_id
         self.a = a
         self.b = b
@@ -37,26 +35,29 @@ class AVLTree(object):
     def get_min(self, root):
         return root.val if not root.left else self.get_min(root.left)
 
-    def add(self, root, val):
+    def add(self, root, val, a=None, b=None, pol_id=None):
         # initial root
         r_v = root.val
         if r_v is None:
             root.val = val
+            root.a = a
+            root.b = b
+            root.pol_id = pol_id
         else:
             if val < r_v:
                 if not root.left:
-                    root.left = Node(val, 'l', root)
+                    root.left = Node(val, 'l', root, a, b, pol_id)
                     root.w -= 1
                     self.change_w_and_check(root.parent, root)
                 else:
-                    self.add(root.left, val)
+                    self.add(root.left, val, a, b, pol_id)
             elif r_v < val:
                 if not root.right:
-                    root.right = Node(val, 'r', root)
+                    root.right = Node(val, 'r', root, a, b, pol_id)
                     root.w += 1
                     self.change_w_and_check(root.parent, root)
                 else:
-                    self.add(root.right, val)
+                    self.add(root.right, val, a, b, pol_id)
 
     def change_w_and_check(self, parent, node):
         w1 = node.w
@@ -383,11 +384,46 @@ class AVLTree(object):
                 self.balance_for_deletion(par)
 
         elif l and not r:
-            pass
+            if typ is None:
+                l.typ = None
+                tree.root = l
+                l.parent = None
+            else:
+                if typ == 'l':
+                    par.left = l
+                    par.w += 1
+                else:  # right
+                    par.right = l
+                    par.w -= 1
+                self.balance_for_deletion(par)
+
+        elif not l and r:
+            if typ is None:
+                r.typ = None
+                tree.root = r
+                r.parent = None
+            else:
+                if typ == 'l':
+                    par.left = r
+                    par.w += 1
+                else:  # right
+                    par.right = r
+                    par.w -= 1
+                self.balance_for_deletion(par)
+        else:
+            # берем минимум, удаляем минимум, заменяем ту ноду значением из минимума
+            min_val = self.get_min(node.right)
+            self.delete(tree, min_val)
+            node.val = min_val
+
 
 if __name__ == "__main__":
     avl = AVLTree()
     # x = [5, 6, 2, 1, 3, 4, 7, 8, 9, 10, 11, ]
+
+    # fixme needs to check all
+
+    # deleting node without left, without right
     # right rotate
     # x = [5,3,7,1,]
     # x = [5,3,7,1,4]
@@ -404,8 +440,16 @@ if __name__ == "__main__":
     # x = [4,3,6,5,7]
     # x = [4,3,6,2,5,7,8]
     # x = [1,-1,4,-2,0,3,6,-3,2,5,7,4.5]
-    x = [1,-1,4,-2,0,3,6,-3,2,5,7,4.5,5.1]
+    # x = [1,-1,4,-2,0,3,6,-3,2,5,7,4.5,5.1]
 
+    # fixme needs big left rotate
+
+
+    # deleting node with left, without right
+    x = [3, 2, 5, 1, ]
+
+    # deleting node with left and right
+    x = [5,4,7,3,6,9,8]  # del 7
 
     for i in x:
         avl.add(avl.root, i)
@@ -414,14 +458,8 @@ if __name__ == "__main__":
 
     avl.show()
 
-    avl.delete(avl, 2)
+    avl.delete(avl, 5)
 
     print 80*'-'
     avl.show()
     print 80*'-'
-
-
-
-
-
-
