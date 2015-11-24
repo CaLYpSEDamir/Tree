@@ -189,13 +189,11 @@ def build_tree():
 
     curr = SORTED_COORDINATES[stopped]
     curr_x = ALL_XS[-1][0]
-    print 'first x', curr_x
 
     # если деревьев еще не было, то None
     try:
         prev_tree = ALL_XS[-2][1]
     except Exception:
-        print 'No tree exists!'
         prev_tree = None
 
     nodes = []
@@ -209,7 +207,6 @@ def build_tree():
             curr = SORTED_COORDINATES[stopped]
             n_x = float(curr['x1'])
         except IndexError:
-            print 'End has reached!'
             is_end = True
             # у последнего берем х2 для нахождения x_middle
             n_x = curr['x2']
@@ -218,7 +215,6 @@ def build_tree():
         raise Exception('Nodes is empty, something went wrong!')
 
     x_middle = (n_x+curr_x)/2
-    print x_middle, 'x_middle'
 
     to_delete = deletions
     print 'to_delete', to_delete
@@ -226,18 +222,20 @@ def build_tree():
     # обрабатываем ноды будущего дерева
     nodes = process_tree_nodes(nodes, x_middle, n_x)
 
+    print 'to_add'
+    for n in nodes:
+        print n
+    print 90*'-'
+
     if not prev_tree:
-        print 'No prev tree!'
         tree = AVLTree()
         for n in nodes:
             tree.add(tree.root, n['val'], n['a'], n['b'], n['pol_id'])
-        print 'deletions', deletions
-        # tree.show()
+        tree.show()
         ref_to_tree = tree
     else:
         # процесс перестраивания дерева
         ref_to_tree = prev_tree
-        print 'Prev Tree exists!'
         # prev_tree.show()
 
     ALL_XS[-1][1] = ref_to_tree
@@ -255,15 +253,15 @@ if __name__ == "__main__":
 
     # достаем коорды
     get_coordinates()
-    for i, c in enumerate(ALL_COORDINATES):
-        print i, c
-    print 90*'-'
+    # for i, c in enumerate(ALL_COORDINATES):
+    #     print i, c
+    # print 90*'-'
 
     # сортируем коорды
     sort_coordinates()
-    for i, c in enumerate(SORTED_COORDINATES):
-        print i, c
-    print 90*'-'
+    # for i, c in enumerate(SORTED_COORDINATES):
+    #     print i, c
+    # print 90*'-'
 
     set_first_to_xs()
 
@@ -271,5 +269,5 @@ if __name__ == "__main__":
 
     # пока не достигли конца строим деревья
     next_x1 = build_tree()
-    while next_x1 is not None:
-        next_x1 = build_tree()
+    # while next_x1 is not None:
+    #     next_x1 = build_tree()

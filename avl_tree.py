@@ -6,10 +6,7 @@ import math
 class Node(object):
 
     def __init__(self, val=None, type=None, parent=None,
-                 # fixme надо хранить х2, для сравнения сколько вышло и заходит
-                 # x2=None,
-                 y2=None,
-                 a=None, b=None, pol_id=None):
+                 a=None, b=None, pid1=None, pid2=None):
         self.val = val
         self.w = 0
         self.left = None
@@ -17,7 +14,8 @@ class Node(object):
         self.parent = parent
         self.type = type
 
-        self.pol_id = pol_id
+        self.pid1 = pid1
+        self.pid2 = pid2
         self.a = a
         self.b = b
 
@@ -43,22 +41,25 @@ class AVLTree(object):
             root.val = val
             root.a = a
             root.b = b
-            root.pol_id = pol_id
+            root.pid1 = pol_id
         else:
             if val < r_v:
                 if not root.left:
-                    root.left = Node(val, 'l', root, a, b, pol_id)
+                    root.left = Node(val, 'l', root, a, b, pid1=pol_id)
                     root.w -= 1
                     self.change_w_and_check(root.parent, root)
                 else:
                     self.add(root.left, val, a, b, pol_id)
             elif r_v < val:
                 if not root.right:
-                    root.right = Node(val, 'r', root, a, b, pol_id)
+                    root.right = Node(val, 'r', root, a, b, pid1=pol_id)
                     root.w += 1
                     self.change_w_and_check(root.parent, root)
                 else:
                     self.add(root.right, val, a, b, pol_id)
+            else:
+                # добавляем второй id полигона
+                root.pid2 = pol_id
 
     def change_w_and_check(self, parent, node):
         w1 = node.w
@@ -193,7 +194,9 @@ class AVLTree(object):
                 '('+str(getattr(x_, 'w', 'N'))+')' +
                 '('+str(getattr(x_, 'type', 'N'))+')'
                 # +'('+str(getattr(x_, 'a', 'N'))+')'
-                # +'('+str(getattr(x_, 'pol_id', 'N'))+')'
+                # +'('+str(getattr(x_, 'b', 'N'))+')'
+                +'('+str(getattr(x_, 'pid1', 'N'))+')'
+                +'('+str(getattr(x_, 'pid2', 'N'))+')'
                 )
                for j, (x_, y) in enumerate(res)
             )
