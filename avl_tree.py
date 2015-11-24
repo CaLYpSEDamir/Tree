@@ -7,7 +7,8 @@ class Node(object):
 
     def __init__(self, val=None, type=None, parent=None,
                  # fixme надо хранить х2, для сравнения сколько вышло и заходит
-                 x2=None,
+                 # x2=None,
+                 y2=None,
                  a=None, b=None, pol_id=None):
         self.val = val
         self.w = 0
@@ -182,7 +183,7 @@ class AVLTree(object):
         return new_items
 
     def traversing(self, li, spaces):
-        # print li, 'li'
+
         if spaces:
             s = self.process(spaces.pop(0))
         else:
@@ -190,7 +191,10 @@ class AVLTree(object):
         res = zip(li, s)
         gen = (((y-8 if j else y)*' '+str(getattr(x_, 'val', 'N')) +
                 '('+str(getattr(x_, 'w', 'N'))+')' +
-                '('+str(getattr(x_, 'type', 'N'))+')')
+                '('+str(getattr(x_, 'type', 'N'))+')'
+                # +'('+str(getattr(x_, 'a', 'N'))+')'
+                # +'('+str(getattr(x_, 'pol_id', 'N'))+')'
+                )
                for j, (x_, y) in enumerate(res)
             )
 
