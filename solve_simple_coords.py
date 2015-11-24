@@ -2,6 +2,7 @@
 
 __author__ = 'Damir'
 
+import os
 from itertools import imap
 from operator import itemgetter
 
@@ -39,7 +40,7 @@ def calc_Y(x, a, b):
 
 ALL_XS = list()
 ALL_COORDINATES = list()
-SORT_COORDINATES = list()
+SORTED_COORDINATES = list()
 
 # runs throughout ALL_XS
 stopped = 0
@@ -94,26 +95,43 @@ def get_coordinates():
     """
         из файла читаем строки
     """
-    with open('C:\Python27\helperFiles\simple_coords') as f:
+
+    file_path = 'C:\Python27\helperFiles\simple_coords'
+    if not os.path.isfile(file_path):
+        file_path = '/home/damir/Projects/Tree/simple_coords'
+
+    with open(file_path) as f:
         for line in f.readlines():
             pol_id, other_id, line_co = line.split(' ', 2)
             icoords = imap(lambda x: x.split(), line_co.split(','))
             coord_processing(pol_id, icoords)
-            break
 
 
 def sort_coordinates():
     """
         сортируем все координаты по х1
+        fixme needs outsort
     """
-    global SORT_COORDINATES
-    SORT_COORDINATES = sorted(ALL_COORDINATES, key=itemgetter('x1'))
+    global SORTED_COORDINATES
+    SORTED_COORDINATES = sorted(ALL_COORDINATES, key=itemgetter('x1'))
 
 
-def sort_tree_nodes(nodes, x_middle, n_x):
+def set_first_to_xs():
+    """
+        Записываем первый x в список X-ов
+    """
+    first = SORTED_COORDINATES[0]
+    first_x = float(first['x1'])
+    ALL_XS.append([first_x, None])
 
-    global to_dels
-    to_dels = []
+
+def process_tree_nodes(nodes, x_middle, n_x):
+    """
+        Определяем val ноды, определяем ноды на удаление,
+        сортируем по val
+    """
+    global deletions
+    deletions = []
     # если х2 совпадает с n_x, то на удаление
     for n in nodes:
         n['val'] = calc_Y(x_middle, n['a'], n['b'])
@@ -121,36 +139,37 @@ def sort_tree_nodes(nodes, x_middle, n_x):
         # del n['y1']
 
         if n['x2'] == n_x:
-            to_dels.append(n['val'])
+            deletions.append({'val': n['val'], 'y2': n['y2']})
             n['del'] = True
         # del n['x2']
 
     return sorted(nodes, key=itemgetter('val'))
 
-# списки на удаление
-to_dels = []
+# списки на удаление, элемент состоит из val и y2
+# будем группировать по y2
+deletions = []
 
 
 def build_first_tree():
     global stopped
 
-    first = SORT_COORDINATES[stopped]
+    first = SORTED_COORDINATES[stopped]
     first_x = float(first['x1'])
     nodes = [first, ]
     stopped += 1
-    next = SORT_COORDINATES[stopped]
+    next = SORTED_COORDINATES[stopped]
 
     n_x = float(next['x1'])
     while n_x == first_x:
         nodes.append(next)
         stopped += 1
-        next = SORT_COORDINATES[stopped]
+        next = SORTED_COORDINATES[stopped]
         n_x = float(next['x1'])
 
     x_middle = (n_x+first_x)/2
 
     # сортируем ноды
-    nodes = sort_tree_nodes(nodes, x_middle, n_x)
+    nodes = process_tree_nodes(nodes, x_middle, n_x)
 
     # строим дерево
     tree = AVLTree()
@@ -165,53 +184,92 @@ def build_first_tree():
     ALL_XS.append([n_x, None])
 
 
-def build_queue_tree():
+def build_tree():
     global stopped
-    # stopped += 1
-    next = SORT_COORDINATES[stopped]
 
+    curr = SORTED_COORDINATES[stopped]
     curr_x = ALL_XS[-1][0]
-    prev_tree = ALL_XS[-2][1]
-    nodes = []
+    print 'first x', curr_x
 
-    n_x = float(next['x1'])
+    # если деревьев еще не было, то None
+    try:
+        prev_tree = ALL_XS[-2][1]
+    except Exception:
+        print 'No tree exists!'
+        prev_tree = None
+
+    nodes = []
+    n_x = float(curr['x1'])
+    is_end = False
+
     while n_x == curr_x:
-        nodes.append(next)
+        nodes.append(curr)
         stopped += 1
-        next = SORT_COORDINATES[stopped]
-        n_x = float(next['x1'])
+        try:
+            curr = SORTED_COORDINATES[stopped]
+            n_x = float(curr['x1'])
+        except IndexError:
+            print 'End has reached!'
+            is_end = True
+            # у последнего берем х2 для нахождения x_middle
+            n_x = curr['x2']
+
+    if not nodes:
+        raise Exception('Nodes is empty, something went wrong!')
 
     x_middle = (n_x+curr_x)/2
+    print x_middle, 'x_middle'
 
-    # сортируем ноды
+    to_delete = deletions
+    print 'to_delete', to_delete
 
-    deleting = to_dels
-    print deleting
-    nodes = sort_tree_nodes(nodes, x_middle, n_x)
+    # обрабатываем ноды будущего дерева
+    nodes = process_tree_nodes(nodes, x_middle, n_x)
 
-    tree = AVLTree()
-    for n in nodes:
-        tree.add(tree.root, n['val'], n['a'], n['b'], n['pol_id'])
-    print to_dels
-    tree.show()
-    ref_to_tree = tree
-    # первое дерево
+    if not prev_tree:
+        print 'No prev tree!'
+        tree = AVLTree()
+        for n in nodes:
+            tree.add(tree.root, n['val'], n['a'], n['b'], n['pol_id'])
+        print 'deletions', deletions
+        # tree.show()
+        ref_to_tree = tree
+    else:
+        # процесс перестраивания дерева
+        ref_to_tree = prev_tree
+        print 'Prev Tree exists!'
+        # prev_tree.show()
+
     ALL_XS[-1][1] = ref_to_tree
     # следующее значение Х
     ALL_XS.append([n_x, None])
 
+    return n_x if not is_end else None
+
 
 if __name__ == "__main__":
-    pass
+
     # a, b = linear_func(0.5, 2, 1, 1)
     # y = calc_Y(a,b,3)
     # print y
 
+    # достаем коорды
     get_coordinates()
+    for i, c in enumerate(ALL_COORDINATES):
+        print i, c
+    print 90*'-'
+
+    # сортируем коорды
     sort_coordinates()
-    # for c in SORT_COORDINATES:
-    #     print c
+    for i, c in enumerate(SORTED_COORDINATES):
+        print i, c
+    print 90*'-'
 
-    build_first_tree()
+    set_first_to_xs()
 
-    build_queue_tree()
+    all_coords_len = len(SORTED_COORDINATES)
+
+    # пока не достигли конца строим деревья
+    next_x1 = build_tree()
+    while next_x1 is not None:
+        next_x1 = build_tree()
