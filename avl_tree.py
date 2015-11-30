@@ -18,6 +18,8 @@ class Node(object):
         self.pid2 = pid2
         self.a = a
         self.b = b
+        # при замене флаг
+        self.updated = False
 
     def __str__(self):
         return '({0}, {1}, {2})'.format(self.val, self.type, self.w)

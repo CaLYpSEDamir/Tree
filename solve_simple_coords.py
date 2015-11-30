@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Damir'
 
 import os
 from itertools import imap
 from operator import itemgetter
+from copy import deepcopy
 
 from avl_tree import AVLTree
+from simple_helpers import process_add_del
 
 
 def get_A_B(x1, y1, x2, y2):
@@ -150,41 +151,7 @@ def process_tree_nodes(nodes, x_middle, n_x):
 deletions = []
 
 
-def build_first_tree():
-    global stopped
-
-    first = SORTED_COORDINATES[stopped]
-    first_x = float(first['x1'])
-    nodes = [first, ]
-    stopped += 1
-    next = SORTED_COORDINATES[stopped]
-
-    n_x = float(next['x1'])
-    while n_x == first_x:
-        nodes.append(next)
-        stopped += 1
-        next = SORTED_COORDINATES[stopped]
-        n_x = float(next['x1'])
-
-    x_middle = (n_x+first_x)/2
-
-    # сортируем ноды
-    nodes = process_tree_nodes(nodes, x_middle, n_x)
-
-    # строим дерево
-    tree = AVLTree()
-    for n in nodes:
-        tree.add(tree.root, n['val'], n['a'], n['b'], n['pol_id'])
-    tree.show()
-    ref_to_tree = tree
-
-    # первое дерево
-    ALL_XS.append([first_x, ref_to_tree])
-    # следующее значение Х
-    ALL_XS.append([n_x, None])
-
-
-def build_tree():
+def process_tree():
     global stopped
 
     curr = SORTED_COORDINATES[stopped]
@@ -217,26 +184,25 @@ def build_tree():
     x_middle = (n_x+curr_x)/2
 
     to_delete = deletions
-    print 'to_delete', to_delete
 
     # обрабатываем ноды будущего дерева
-    nodes = process_tree_nodes(nodes, x_middle, n_x)
-
-    print 'to_add'
-    for n in nodes:
-        print n
-    print 90*'-'
+    to_add = process_tree_nodes(nodes, x_middle, n_x)
 
     if not prev_tree:
         tree = AVLTree()
-        for n in nodes:
+        for n in to_add:
             tree.add(tree.root, n['val'], n['a'], n['b'], n['pol_id'])
         tree.show()
         ref_to_tree = tree
     else:
+
+        next_tree = deepcopy(prev_tree)
+
+        process_add_del(to_delete, to_add, next_tree, prev_tree)
+
         # процесс перестраивания дерева
-        ref_to_tree = prev_tree
-        # prev_tree.show()
+        ref_to_tree = next_tree
+        next_tree.show()
 
     ALL_XS[-1][1] = ref_to_tree
     # следующее значение Х
@@ -268,6 +234,6 @@ if __name__ == "__main__":
     all_coords_len = len(SORTED_COORDINATES)
 
     # пока не достигли конца строим деревья
-    next_x1 = build_tree()
+    next_x1 = process_tree()
     # while next_x1 is not None:
-    #     next_x1 = build_tree()
+    next_x1 = process_tree()
