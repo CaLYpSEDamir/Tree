@@ -20,9 +20,20 @@ class Node(object):
         self.b = b
         # при замене флаг
         self.updated = False
+        # версия
+        self.v = None
 
     def __str__(self):
         return '({0}, {1}, {2})'.format(self.val, self.type, self.w)
+
+    def calc_new_val(self, x_m):
+        x_m = float(x_m)
+        a = float(self.a)
+        b = float(self.b)
+        return a*x_m+b
+
+    def set_new_val(self, x_m):
+        self.val = self.calc_new_val(x_m)
 
 
 class AVLTree(object):
@@ -149,6 +160,27 @@ class AVLTree(object):
             childs = filter(None, new_childs)
 
         return len(result)
+
+    @staticmethod
+    def update_vals(root, x_middle):
+        childs = [root, ]
+        while childs:
+            new_childs = []
+            for n in childs:
+                if n.updated:
+                    n.set_new_val(x_middle)
+                new_childs.extend([n.left, n.right])
+            childs = filter(None, new_childs)
+
+    @staticmethod
+    def remove_update_flags(root):
+        childs = [root, ]
+        while childs:
+            new_childs = []
+            for n in childs:
+                n.updated = False
+                new_childs.extend([n.left, n.right])
+            childs = filter(None, new_childs)
 
     @staticmethod
     def get_spaces(node_count, space_count):
@@ -368,11 +400,11 @@ class AVLTree(object):
 
         self.balance_for_deletion(parent.parent)
 
-    def delete(self, tree, val):
-        if tree.root.val is None:
+    def delete(self, val):
+        if self.root.val is None:
             print 'Tree is empty!'
             return
-        node = self.get_node(tree.root, val)
+        node = self.get_node(self.root, val)
         if not node:
             print 'No such element to delete!'
             return
@@ -381,7 +413,7 @@ class AVLTree(object):
         if not l and not r:
             # если удаляем корень без детей, то сносим дерево
             if typ is None:
-                tree.root = Node()
+                self.root = Node()
                 return
             else:
                 if typ == 'l':
@@ -395,7 +427,7 @@ class AVLTree(object):
         elif l and not r:
             if typ is None:
                 l.typ = None
-                tree.root = l
+                self.root = l
                 l.parent = None
             else:
                 if typ == 'l':
@@ -409,7 +441,7 @@ class AVLTree(object):
         elif not l and r:
             if typ is None:
                 r.typ = None
-                tree.root = r
+                self.root = r
                 r.parent = None
             else:
                 if typ == 'l':
@@ -422,7 +454,7 @@ class AVLTree(object):
         else:
             # берем минимум, удаляем минимум, заменяем ту ноду значением из минимума
             min_val = self.get_min(node.right)
-            self.delete(tree, min_val)
+            self.delete(min_val)
             node.val = min_val
 
 
@@ -467,7 +499,7 @@ if __name__ == "__main__":
 
     avl.show()
 
-    avl.delete(avl, 5)
+    avl.delete(5)
 
     print 80*'-'
     avl.show()

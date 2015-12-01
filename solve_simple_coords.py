@@ -4,10 +4,10 @@
 import os
 from itertools import imap
 from operator import itemgetter
-from copy import deepcopy
 
+from copy import deepcopy
 from avl_tree import AVLTree
-from simple_helpers import process_add_del
+from simple_helpers import (process_add_del, find_polygon)
 
 
 def get_A_B(x1, y1, x2, y2):
@@ -136,13 +136,10 @@ def process_tree_nodes(nodes, x_middle, n_x):
     # если х2 совпадает с n_x, то на удаление
     for n in nodes:
         n['val'] = calc_Y(x_middle, n['a'], n['b'])
-        # del n['x1']
-        # del n['y1']
 
         if n['x2'] == n_x:
-            deletions.append({'val': n['val'], 'y2': n['y2']})
-            n['del'] = True
-        # del n['x2']
+            deletions.append({
+                'val': n['val'], 'y2': n['y2'], 'pol_id': n['pol_id'], })
 
     return sorted(nodes, key=itemgetter('val'))
 
@@ -200,6 +197,11 @@ def process_tree():
 
         process_add_del(to_delete, to_add, next_tree, prev_tree)
 
+        # обновляем все значения в нодах
+        next_tree.update_vals(next_tree.root, x_middle)
+        # обнуляем флаги updates
+        next_tree.remove_update_flags(next_tree.root)
+
         # процесс перестраивания дерева
         ref_to_tree = next_tree
         next_tree.show()
@@ -235,5 +237,12 @@ if __name__ == "__main__":
 
     # пока не достигли конца строим деревья
     next_x1 = process_tree()
-    # while next_x1 is not None:
-    next_x1 = process_tree()
+    while next_x1 is not None:
+        next_x1 = process_tree()
+
+    # print ALL_XS
+    second_tree = ALL_XS[1][1]
+    second_tree.show()
+    pol_id = find_polygon(second_tree.root, 1.5, 1.4)
+    print pol_id
+    # second_tree.show()
