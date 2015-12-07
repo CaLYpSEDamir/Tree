@@ -19,9 +19,10 @@ class Node(object):
         self.a = a
         self.b = b
         # при замене флаг
-        self.updated = False
-        # версия
-        self.v = None
+        self.pid1_filled = False
+        # при построении версий
+        # new in new version
+        self.new_in_v = False
 
     def __str__(self):
         return '({0}, {1}, {2})'.format(self.val, self.type, self.w)
@@ -167,7 +168,7 @@ class AVLTree(object):
         while childs:
             new_childs = []
             for n in childs:
-                if n.updated:
+                if n.pid1_filled:
                     n.set_new_val(x_middle)
                 new_childs.extend([n.left, n.right])
             childs = filter(None, new_childs)
@@ -178,7 +179,7 @@ class AVLTree(object):
         while childs:
             new_childs = []
             for n in childs:
-                n.updated = False
+                n.pid1_filled = False
                 new_childs.extend([n.left, n.right])
             childs = filter(None, new_childs)
 
@@ -283,6 +284,72 @@ class AVLTree(object):
             else:
                 return root
         return node
+
+    def create_node_branch(self, del_val, new_info, orig_tree):
+
+        copy_par = None
+
+        orig = orig_tree.root
+        copy = self.root
+        # exchanging
+        while orig:
+            if orig.val == del_val:
+                # дерево пусто
+                if not copy.new_in_v:
+                    copy.val = new_info['val']
+                    copy.a = new_info['a']
+                    copy.b = new_info['b']
+                    if not copy.pid1_filled:
+                        copy.pid1 = new_info['pol_id']
+                        copy.pid1_filled = True
+                    else:
+                        copy.pid2 = new_info['pol_id']
+                    copy.new_in_v = True
+
+                copy.left = orig.left
+                copy.right = orig.right
+                copy.type = orig.type
+                copy.w = orig.w
+                if copy_par:
+                    if copy.type == 'l':
+                        copy_par.left = copy
+                    else:
+                        copy_par.right = copy
+
+                copy.parent = copy_par
+                break
+            else:
+                if not copy.new_in_v:
+                    copy.val = orig.val
+                    copy.a = orig.a
+                    copy.b = orig.b
+                    copy.pid1 = orig.pid1
+                    copy.pid2 = orig.pid2
+                    copy.new_in_v = True
+                    copy.pid2 = new_info['pol_id']
+
+                    copy.parent = copy_par
+                    copy.left = orig.left
+                    copy.right = orig.right
+                    copy.type = orig.type
+                    copy.w = orig.w
+
+                if copy_par:
+                    if copy.type == 'l':
+                        copy_par.left = copy
+                    else:
+                        copy_par.right = copy
+
+                copy_par = copy
+                orig, copy = (orig.left, copy.left) if orig.val > del_val else (orig.right, copy.right)
+
+
+
+
+
+
+
+
 
     def show(self):
         count = self.get_nodes_count(self.root)

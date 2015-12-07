@@ -193,7 +193,7 @@ def process_tree():
         ref_to_tree = tree
     else:
 
-        next_tree = deepcopy(prev_tree)
+        next_tree = AVLTree()
 
         process_add_del(to_delete, to_add, next_tree, prev_tree)
 

@@ -2,17 +2,22 @@
 
 from itertools import groupby, izip_longest
 from operator import itemgetter
+from collections import Counter
 
 
 def replace_node_val(next_tree, del_val, new_info):
     node = next_tree.get_node(next_tree.root, del_val)
-    if not node.updated:
+    if not node.pid1_filled:
         node.a = new_info['a']
         node.b = new_info['b']
         node.pid1 = new_info['pol_id']
-        node.updated = True
+        node.pid1_filled = True
     else:
         node.pid2 = new_info['pol_id']
+
+
+def create_node_branch(next_tree, del_val, new_info, prev_tree):
+    next_tree.create_node_branch(del_val, new_info, prev_tree)
 
 
 def process_add_del(to_del, to_add, next_tree, prev_tree):
@@ -42,9 +47,11 @@ def process_add_del(to_del, to_add, next_tree, prev_tree):
         d, a = pair
 
         for pair in izip_longest(d, a):
+            # пара (на удаление, на добавление вместо удаленного)
             first, second = pair
             if first and second:
-                replace_node_val(next_tree, first['val'], second)
+                # replace_node_val(next_tree, first['val'], second)
+                create_node_branch(next_tree, first['val'], second, prev_tree)
             else:
                 f_del.append(first) if first else f_add.append(second)
 
@@ -78,8 +85,10 @@ def find_polygon(root, came_x, came_y):
     if not less and not more:
         pass
     elif less and more:
-        # fixme как то надо достать 2 одинаковых
-        return filter(None, [less.pid1, less.pid2, more.pid1, more.pid2])
+        # fixme достаю 2 одинаковых
+        ids = [less.pid1, less.pid2, more.pid1, more.pid2]
+        print ids
+        return max(Counter(ids))
     else:
         print 'Out of territory'
         return None
