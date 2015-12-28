@@ -34,28 +34,41 @@ def process_add_del(to_del, to_add, next_tree, prev_tree):
     for k, gr in groupby(sorted(to_add, key=itemgetter('val')), lambda x: x['y1']):
         add_dict[k] = list(gr)
 
+    print 'del_dict', del_dict
+    print 'add_dict', add_dict
+
     for k in del_dict:
         pairs.append((del_dict[k], add_dict.get(k, [])))
 
-        add_dict.pop(k, None)
+        # add_dict.pop(k, None)
 
     # finals
-    f_del = []
-    f_add = []
+    f_del = []  # deletions without pair to replace
+    f_add = []  # addition without pair to replace
+
+    print 'pairs', pairs
 
     for pair in pairs:
         d, a = pair
 
-        for pair in izip_longest(d, a):
+        for i_pair in izip_longest(d, a):
             # пара (на удаление, на добавление вместо удаленного)
-            first, second = pair
-            if first and second:
+            i_d, i_a = i_pair
+            if i_d and i_a:
                 # replace_node_val(next_tree, first['val'], second)
-                create_node_branch(next_tree, first['val'], second, prev_tree)
+                create_node_branch(next_tree, i_d['val'], i_a, prev_tree)
+                print prev_tree
+                prev_tree.show()
+                print next_tree
+                next_tree.show()
             else:
-                f_del.append(first) if first else f_add.append(second)
+                f_del.append(i_d) if i_d else f_add.append(i_a)
 
-    print f_del, f_add
+    print 80*'-'
+    print 'deletions without pair to replace'
+    print f_del
+    print 'addition without pair to replace'
+    print f_add
 
     # удаляем сразу по 2 значения
     for v, gr in groupby(f_del, lambda x: x['val']):

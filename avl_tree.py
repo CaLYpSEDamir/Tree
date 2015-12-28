@@ -319,7 +319,8 @@ class AVLTree(object):
                 copy.parent = copy_par
                 break
             else:
-                if not copy.new_in_v:
+                # у нового дерева ноды пустые перед заменой
+                if not copy.val:
                     copy.val = orig.val
                     copy.a = orig.a
                     copy.b = orig.b
