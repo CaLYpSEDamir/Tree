@@ -6,7 +6,7 @@ import math
 class Node(object):
 
     def __init__(self, val=None, type=None, parent=None,
-                 a=None, b=None, pid1=None, pid2=None):
+                 a=None, b=None, pid1=None, pid2=None, tree_id=None):
         self.val = val
         self.w = 0
         self.left = None
@@ -24,8 +24,10 @@ class Node(object):
         # new in new version
         self.new_in_v = False
 
+        self.tree_id = tree_id
+
     def __str__(self):
-        return '({0}, {1}, {2})'.format(self.val, self.type, self.w)
+        return '(val={0}, type={1}, w={2})'.format(self.val, self.type, self.w)
 
     def calc_new_val(self, x_m):
         x_m = float(x_m)
@@ -56,17 +58,18 @@ class AVLTree(object):
             root.a = a
             root.b = b
             root.pid1 = pol_id
+            root.tree_id = id(self)
         else:
             if val < r_v:
                 if not root.left:
-                    root.left = Node(val, 'l', root, a, b, pid1=pol_id)
+                    root.left = Node(val, 'l', root, a, b, pid1=pol_id, tree_id=id(self))
                     root.w -= 1
                     self.change_w_and_check(root.parent, root)
                 else:
                     self.add(root.left, val, a, b, pol_id)
             elif r_v < val:
                 if not root.right:
-                    root.right = Node(val, 'r', root, a, b, pid1=pol_id)
+                    root.right = Node(val, 'r', root, a, b, pid1=pol_id, tree_id=id(self))
                     root.w += 1
                     self.change_w_and_check(root.parent, root)
                 else:
@@ -225,13 +228,15 @@ class AVLTree(object):
         else:
             s = [0, ]
         res = zip(li, s)
-        gen = (((y-8 if j else y)*' '+str(getattr(x_, 'val', 'N')) +
-                '('+str(getattr(x_, 'w', 'N'))+')' +
-                '('+str(getattr(x_, 'type', 'N'))+')'
+        gen = (((y-8 if j else y)*' '+str(getattr(x_, 'val', None) or 'N') +
+                '('+str(getattr(x_, 'w', None) or 'N')+')' +
+                '('+str(getattr(x_, 'type', None) or 'N')+')'
                 # +'('+str(getattr(x_, 'a', 'N'))+')'
                 # +'('+str(getattr(x_, 'b', 'N'))+')'
-                +'('+str(getattr(x_, 'pid1', 'N'))+')'
-                +'('+str(getattr(x_, 'pid2', 'N'))+')'
+                # +'('+str(getattr(x_, 'pid1', 'N'))+')'
+                # +'('+str(getattr(x_, 'pid2', 'N'))+')'
+
+                +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
                 )
                for j, (x_, y) in enumerate(res)
             )
@@ -344,6 +349,56 @@ class AVLTree(object):
                 copy_par = copy
                 orig, copy = (orig.left, copy.left) if orig.val > del_val else (orig.right, copy.right)
 
+    def simple_create_node_branch(
+            self, del_val, add_val, orig_tree):
+
+        copy_par = None
+
+        orig = orig_tree.root
+        copy = self.root
+        # print orig
+        # print copy
+        # exchanging
+        # идем от корня, и пока есть дети
+        # обрабатываем и идем дальше
+        while orig:
+            print 'orig', orig
+            if orig.val == del_val:
+                copy.val = add_val
+                copy.left = orig.left
+                copy.right = orig.right
+                copy.type = orig.type
+                copy.w = orig.w
+                copy.tree_id = id(self)
+                if copy_par:
+                    if orig.type == 'l':
+                        copy_par.left = copy
+                    else:
+                        copy_par.right = copy
+
+                copy.parent = copy_par
+                break
+            else:
+                # у нового дерева ноды пустые перед заменой
+                if not copy.val:
+                    copy.val = orig.val
+                    copy.parent = copy_par
+                    copy.left = orig.left
+                    copy.right = orig.right
+                    copy.type = orig.type
+                    copy.w = orig.w
+                    copy.tree_id = id(self)
+
+                if copy_par:
+                    if copy.type == 'l':
+                        copy_par.left = copy
+                    else:
+                        copy_par.right = copy
+
+                copy_par = copy
+                orig, copy = (
+                    (orig.left, Node()) if orig.val > del_val
+                        else (orig.right, Node()))
 
 
 

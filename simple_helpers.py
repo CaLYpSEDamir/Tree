@@ -5,6 +5,10 @@ from operator import itemgetter
 from collections import Counter
 
 
+def l():
+    print 80*'-'
+
+
 def replace_node_val(next_tree, del_val, new_info):
     node = next_tree.get_node(next_tree.root, del_val)
     if not node.pid1_filled:

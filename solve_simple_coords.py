@@ -7,7 +7,7 @@ from operator import itemgetter
 
 from copy import deepcopy
 from avl_tree import AVLTree
-from simple_helpers import (process_add_del, find_polygon)
+from simple_helpers import (process_add_del, find_polygon, l)
 
 
 def get_A_B(x1, y1, x2, y2):
@@ -217,38 +217,50 @@ def process_tree():
 
 
 if __name__ == "__main__":
-
-    # a, b = linear_func(0.5, 2, 1, 1)
-    # y = calc_Y(a,b,3)
-    # print y
-
-    # достаем коорды
-    get_coordinates()
-    # for i, c in enumerate(ALL_COORDINATES):
-    #     print i, c
-    # print 90*'-'
-
-    # сортируем коорды
-    sort_coordinates()
-    # for i, c in enumerate(SORTED_COORDINATES):
-    #     print i, c
-    # print 90*'-'
-
-    set_first_to_xs()
-
-    all_coords_len = len(SORTED_COORDINATES)
+    # # достаем коорды
+    # get_coordinates()
+    # # сортируем коорды
+    # sort_coordinates()
+    # set_first_to_xs()
+    # all_coords_len = len(SORTED_COORDINATES)
 
     # пока не достигли конца строим деревья
-    next_x1 = process_tree()
-    print 'next_x1', next_x1
-    next_x1 = process_tree()
-    print 'next_x1', next_x1
+    # next_x1 = process_tree()
+    # print 'next_x1', next_x1
+    # next_x1 = process_tree()
+    # print 'next_x1', next_x1
     # while next_x1 is not None:
     #     next_x1 = process_tree()
 
-    print ALL_XS
+    # print ALL_XS
     # second_tree = ALL_XS[1][1]
     # second_tree.show()
     # pol_id = find_polygon(second_tree.root, 1.5, 1.4)
     # print pol_id
     # second_tree.show()
+
+    l()
+
+    avl = AVLTree()
+    for i in [4, 2, 5, 1, 3]:
+        avl.add(avl.root, i)
+    avl.show()
+    l()
+    avl2 = AVLTree()
+    avl2.simple_create_node_branch(3, 'new_val', avl)
+    l()
+    avl2.show()
+
+    l()
+    avl3 = AVLTree()
+    avl3.simple_create_node_branch(5, '3new_val3', avl2)
+    l()
+    avl3.show()
+
+
+
+
+
+
+
+
