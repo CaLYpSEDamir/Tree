@@ -6,7 +6,7 @@ from collections import Counter
 
 
 def l():
-    print 80*'-'
+    print 80*'-'+'\n\n\n'
 
 
 def replace_node_val(next_tree, del_val, new_info):

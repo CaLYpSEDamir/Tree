@@ -239,23 +239,34 @@ if __name__ == "__main__":
     # print pol_id
     # second_tree.show()
 
+    # l()
+    #
+    # avl = AVLTree([4, 3, 5, 2])
+    # avl.show()
+    # l()
+    #
+    # avl.add(avl.root, 1)
+    # avl.show()
+    # l()
+
     l()
 
-    avl = AVLTree()
-    for i in [4, 2, 5, 1, 3]:
-        avl.add(avl.root, i)
+    avl = AVLTree([4, 2, 5, 1, 3, 6])
+    # avl = AVLTree([2, 1])
     avl.show()
+
     l()
+
     avl2 = AVLTree()
-    avl2.simple_create_node_branch(3, 'new_val', avl)
+    avl2.ADD_create_node_branch(avl, 3.1)
     l()
     avl2.show()
 
-    l()
-    avl3 = AVLTree()
-    avl3.simple_create_node_branch(5, '3new_val3', avl2)
-    l()
-    avl3.show()
+    # l()
+    # avl3 = AVLTree()
+    # avl3.replace_create_node_branch(5, '3new_val3', avl2)
+    # l()
+    # avl3.show()
 
 
 

@@ -20,14 +20,14 @@ class Node(object):
         self.b = b
         # при замене флаг
         self.pid1_filled = False
-        # при построении версий
-        # new in new version
+        # при построении версий, new in new version
         self.new_in_v = False
-
+        # временно
         self.tree_id = tree_id
 
     def __str__(self):
-        return '(val={0}, type={1}, w={2})'.format(self.val, self.type, self.w)
+        return '(tree={3}, val={0}, type={1}, w={2})'.format(
+            self.val, self.type, self.w, self.tree_id)
 
     def calc_new_val(self, x_m):
         x_m = float(x_m)
@@ -38,14 +38,39 @@ class Node(object):
     def set_new_val(self, x_m):
         self.val = self.calc_new_val(x_m)
 
+    def copy_node_attrs(self, orig_node, val_to_copy, parent_to_copy):
+        """
+            делает копию ноды при добавлении/замене значения в новое дерево
+        """
+        self.val = val_to_copy
+        self.left = orig_node.left
+        self.right = orig_node.right
+        self.type = orig_node.type
+        self.w = orig_node.w
+        self.new_in_v = True
+        self.a = orig_node.a
+        self.b = orig_node.b
+
+        if parent_to_copy:
+            if orig_node.type == 'l':
+                parent_to_copy.left = self
+            else:
+                parent_to_copy.right = self
+
+        self.parent = parent_to_copy
+
 
 class AVLTree(object):
     """
         AVL Search Tree
     """
 
-    def __init__(self):
+    def __init__(self, nodes=None):
         self.root = Node()
+        # строим дерево в ините, передавая список значений
+        if nodes is not None:
+            for i_ in nodes:
+                self.add(self.root, i_)
 
     def get_min(self, root):
         return root.val if not root.left else self.get_min(root.left)
@@ -77,6 +102,94 @@ class AVLTree(object):
             else:
                 # добавляем второй id полигона
                 root.pid2 = pol_id
+
+    # добавление нодов в версионное дерево
+    def ADD_create_node_branch(self, orig_tree, val):
+        """
+        Во всех add/del/replace функциях, если self.root.val is None,
+        а значит пустое дерево, то копируем с ориг дерева!
+        иначе работаем только с копи-деревом
+        """
+        # FIXME возможно хватит тока копировать вначале только корень
+
+        # предок для новой ноды
+        parent_for_copy = None
+        orig = orig_tree.root
+        copy = self.root
+
+        # значит копи-дерево пусто и будем работать с ориг-деревом
+        if copy.val is None:
+            # вроде такого быть не должно, чтобы оба дерева были пусты
+            if orig.val is None:
+                raise Exception("Something went wrong! Tree is empty!")
+            # копируем корень ориг дерева
+            copy.copy_node_attrs(orig, orig.val, None)
+            copy.tree_id = id(self)
+        # идем вниз, копируя, но со ссылками на parent проблемы
+
+        if copy.val == val:
+            print 'Value {0} is already in Tree root!'.format(str(val))
+            return
+
+        # fixme не обработано, если значение уже есть, то pol_id2 сувать
+        child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
+
+        while child:
+            # уже иммеется значение в дереве
+            if child.val == val:
+                print 'Value {0} is already in Tree!'.format(str(val))
+                break
+            # создание копии ноды
+            if not child.new_in_v:
+                new_node = Node()
+                new_node.copy_node_attrs(child, child.val, copy)
+                new_node.new_in_v = True
+                new_node.tree_id = id(self)
+                copy = new_node
+            else:
+                copy = child
+            child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
+        else:
+            new_node = Node(val=val, type=side, parent=copy, tree_id=id(self))
+            new_node.new_in_v = True
+            new_node.tree_id = id(self)
+            if side == 'l':
+                copy.left = new_node
+                copy.w -= 1
+            else:
+                copy.right = new_node
+                copy.w += 1
+            self.ADD_change_w_and_check(copy.parent, copy)
+
+    def ADD_change_w_and_check(self, parent, node):
+        w1 = node.w
+        if w1 == 0:
+            return
+        if not parent:
+            return
+
+        parent.w = parent.w-1 if node.type == 'l' else parent.w+1
+
+        p_w = parent.w
+
+        if p_w == 0:
+            return
+
+        if p_w in (-1, 1):
+            self.change_w_and_check(parent.parent, parent)
+        elif p_w == 2:
+            if w1 == 1:
+                self.left_rotate(parent, node)
+            else:  # w1==-1
+                print 'start 2;-1'
+                self.right_rotate(node, node.left, 1)
+                self.left_rotate(node.parent.parent, node.parent)
+        else:  # p_w==-2
+            if w1 == -1:
+                self.right_rotate(parent, node)
+            else:  # w1==1
+                self.left_rotate(node, node.right, -1)
+                self.right_rotate(node.parent.parent, node.parent)
 
     def change_w_and_check(self, parent, node):
         w1 = node.w
@@ -167,6 +280,9 @@ class AVLTree(object):
 
     @staticmethod
     def update_vals(root, x_middle):
+        """
+        неправильная реализация обновления значений всех нодов каждый раз
+        """
         childs = [root, ]
         while childs:
             new_childs = []
@@ -229,14 +345,14 @@ class AVLTree(object):
             s = [0, ]
         res = zip(li, s)
         gen = (((y-8 if j else y)*' '+str(getattr(x_, 'val', None) or 'N') +
-                '('+str(getattr(x_, 'w', None) or 'N')+')' +
+                '('+str(getattr(x_, 'w', None))+')' +
                 '('+str(getattr(x_, 'type', None) or 'N')+')'
                 # +'('+str(getattr(x_, 'a', 'N'))+')'
                 # +'('+str(getattr(x_, 'b', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid1', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid2', 'N'))+')'
-
                 +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
+                +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
                 )
                for j, (x_, y) in enumerate(res)
             )
@@ -349,8 +465,8 @@ class AVLTree(object):
                 copy_par = copy
                 orig, copy = (orig.left, copy.left) if orig.val > del_val else (orig.right, copy.right)
 
-    def simple_create_node_branch(
-            self, del_val, add_val, orig_tree):
+    def REPLACE_create_node_branch(
+            self, orig_tree, del_val, add_val):
 
         copy_par = None
 
@@ -362,7 +478,7 @@ class AVLTree(object):
         # идем от корня, и пока есть дети
         # обрабатываем и идем дальше
         while orig:
-            print 'orig', orig
+            # print 'orig', orig
             if orig.val == del_val:
                 copy.val = add_val
                 copy.left = orig.left
@@ -370,6 +486,7 @@ class AVLTree(object):
                 copy.type = orig.type
                 copy.w = orig.w
                 copy.tree_id = id(self)
+                copy.new_in_v = True
                 if copy_par:
                     if orig.type == 'l':
                         copy_par.left = copy
@@ -388,6 +505,7 @@ class AVLTree(object):
                     copy.type = orig.type
                     copy.w = orig.w
                     copy.tree_id = id(self)
+                    copy.new_in_v = True
 
                 if copy_par:
                     if copy.type == 'l':
@@ -399,13 +517,6 @@ class AVLTree(object):
                 orig, copy = (
                     (orig.left, Node()) if orig.val > del_val
                         else (orig.right, Node()))
-
-
-
-
-
-
-
 
     def show(self):
         count = self.get_nodes_count(self.root)
