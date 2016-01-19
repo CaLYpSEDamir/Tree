@@ -251,16 +251,22 @@ if __name__ == "__main__":
 
     l()
 
-    avl = AVLTree([4, 2, 5, 1, 3, 6])
-    # avl = AVLTree([2, 1])
+    avl = AVLTree([])
+    # avl = AVLTree([1, 2])
+
+    avl.add(avl.root, 4)
+    avl.add(avl.root, 2)
+    # avl.add(avl.root, 4)
     avl.show()
 
     l()
+    avl.add(avl.root, 3)
+    avl.show()
 
-    avl2 = AVLTree()
-    avl2.ADD_create_node_branch(avl, 3.1)
-    l()
-    avl2.show()
+    # avl2 = AVLTree()
+    # avl2.ADD_create_node_branch(avl, 3)
+    # l()
+    # avl2.show()
 
     # l()
     # avl3 = AVLTree()

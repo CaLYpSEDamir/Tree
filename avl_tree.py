@@ -176,13 +176,13 @@ class AVLTree(object):
             return
 
         if p_w in (-1, 1):
-            self.change_w_and_check(parent.parent, parent)
+            self.ADD_change_w_and_check(parent.parent, parent)
         elif p_w == 2:
             if w1 == 1:
                 self.left_rotate(parent, node)
             else:  # w1==-1
                 print 'start 2;-1'
-                self.right_rotate(node, node.left, 1)
+                self.right_rotate(node, node.left, simple_rotate=False)
                 self.left_rotate(node.parent.parent, node.parent)
         else:  # p_w==-2
             if w1 == -1:
@@ -212,16 +212,51 @@ class AVLTree(object):
                 self.left_rotate(parent, node)
             else:  # w1==-1
                 print 'start 2;-1'
-                self.right_rotate(node, node.left, 1)
-                self.left_rotate(node.parent.parent, node.parent)
+                print 'big left rotate'
+                print node.val, 'node'
+                print node.left.val, 'left'
+                print node.parent.val, 'parent'
+
+                left_l, left_r = node.left.left, node.left.right
+                if left_l and left_r:
+                    raise Exception('Something went wrong! left_l and left_l are both not empty')
+                if left_l:
+                    node.w = 1
+                    node.left.w = node.parent.w = 0
+                elif left_r:
+                    node.parent.w = -1
+                    node.left.w = node.w = 0
+                else:
+                    node.parent.w = node.left.w = node.w = 0
+
+                self.right_rotate(node, node.left, simple_rotate=False)
+                self.left_rotate(node.parent.parent, node.parent, simple_rotate=False)
         else:  # p_w==-2
             if w1 == -1:
                 self.right_rotate(parent, node)
             else:  # w1==1
-                self.left_rotate(node, node.right, -1)
-                self.right_rotate(node.parent.parent, node.parent)
+                print 'start -2;1'
+                print 'big right rotate'
+                print node.val, 'node'
+                print node.right.val, 'right'
+                print node.parent.val, 'parent'
 
-    def left_rotate(self, parent, node, w=0):
+                right_l, right_r = node.right.left, node.right.right
+                if right_l and right_r:
+                    raise Exception('Something went wrong! right_l and right_l are both not empty')
+                if right_r:
+                    node.w = 1
+                    node.right.w = node.parent.w = 0
+                elif right_l:
+                    node.parent.w = -1
+                    node.right.w = node.w = 0
+                else:
+                    node.parent.w = node.right.w = node.w = 0
+
+                self.left_rotate(node, node.right, simple_rotate=False)
+                self.right_rotate(node.parent.parent, node.parent, simple_rotate=False)
+
+    def left_rotate(self, parent, node, simple_rotate=True):
         s_parent = parent.parent
         node.parent = s_parent
         if not s_parent:
@@ -240,10 +275,11 @@ class AVLTree(object):
             node.left.type = 'r'
         node.left = parent
         parent.type = 'l'
-        parent.w = w
-        node.w = w
+        if simple_rotate:
+            parent.w = 0
+            node.w = 0
 
-    def right_rotate(self, parent, node, w=0):
+    def right_rotate(self, parent, node, simple_rotate=True):
         s_parent = parent.parent
         node.parent = s_parent
         if not s_parent:
@@ -262,8 +298,9 @@ class AVLTree(object):
             node.right.type = 'l'
         node.right = parent
         parent.type = 'r'
-        parent.w = w
-        node.w = w
+        if simple_rotate:
+            parent.w = 0
+            node.w = 0
 
     @staticmethod
     def get_nodes_count(root):
@@ -351,8 +388,8 @@ class AVLTree(object):
                 # +'('+str(getattr(x_, 'b', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid1', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid2', 'N'))+')'
-                +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
-                +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
+                # +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
+                # +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
                 )
                for j, (x_, y) in enumerate(res)
             )
@@ -699,32 +736,40 @@ if __name__ == "__main__":
     # fixme needs to check all
 
     # deleting node without left, without right
+
     # right rotate
-    # x = [5,3,7,1,]
-    # x = [5,3,7,1,4]
-    # x = [5,3,6,2,4,7,1]
-    # big right rotate
-    # x = [5,3,7,4]
-    # x = [6,2,6,6.5,1,4,7,5]
-    # x = [6,2,6,6.5,1,4,7,3]
-    # x = [6,2,6,6.5,1,4,7,3,5]
-    # x = [8,6,11,2,6.5,10,12,1,4,7,9,5]
+    # x = [3,2,1]
+    # x = [4,3,5,2,1]
+    # x = [5,3,6,2,4,1]
+    # x = [6,4,7,3,5,8,2,1]
+    # -------------------------------
+
+    # big right rotate(сначала left, потом right)
+    # x = [3,1,2]
+    # x = [2,1,5,4,6,3]
+    # -------------------------------
 
     # left rotate
-    # x = [4,3,5,7]
-    # x = [4,3,6,5,7]
-    # x = [4,3,6,2,5,7,8]
-    # x = [1,-1,4,-2,0,3,6,-3,2,5,7,4.5]
+    # x=[1,2,3]
+    # x = [2,1,3,4,5]
+    # x = [4,3,6,2,5,7,8,9]
+    # x = [1,-1,4,-2,0.1,3,6,-3,2,5,7,4.5]
     # x = [1,-1,4,-2,0,3,6,-3,2,5,7,4.5,5.1]
+    # x = [3,2,5,1,4,6,7,8]
+    # -------------------------------
 
-    # fixme needs big left rotate
-
+    # big left rotate(сначала right, потом left)
+    # x = [1,3,2]
+    # x = [2,1,5,4,6,3]
+    # x = [2,1,5,4,6,4.5]
+    # x = [2,1,5,4,6,7]
+    # x = [2,1,5,4,6,3]
 
     # deleting node with left, without right
-    x = [3, 2, 5, 1, ]
+    # x = [3, 2, 5, 1, ]
 
     # deleting node with left and right
-    x = [5,4,7,3,6,9,8]  # del 7
+    # x = [5,4,7,3,6,9,8]  # del 7
 
     for i in x:
         avl.add(avl.root, i)
@@ -733,8 +778,8 @@ if __name__ == "__main__":
 
     avl.show()
 
-    avl.delete(5)
-
-    print 80*'-'
-    avl.show()
-    print 80*'-'
+    # avl.delete(5)
+    #
+    # print 80*'-'
+    # avl.show()
+    # print 80*'-'
