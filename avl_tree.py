@@ -601,7 +601,7 @@ class AVLTree(object):
                 parent.w = 0
                 node.w = 0
 
-    def left_rotate_for_del(self, parent, simple_rotate=True):
+    def left_rotate_for_del(self, parent):
         node = parent.right
         s_parent = parent.parent
         node.parent = s_parent
@@ -622,13 +622,13 @@ class AVLTree(object):
         node.left = parent
         parent.type = 'l'
 
-        if simple_rotate:
-            if parent.right:
-                parent.w = 0 if node.w == 1 else 1
-                node.w -= 1
-            else:
-                parent.w = 0
-                node.w = 0
+        # if simple_rotate:
+        #     if parent.right:
+        #         parent.w = 0 if node.w == 1 else 1
+        #         node.w -= 1
+        #     else:
+        #         parent.w = 0
+        #         node.w = 0
 
     def calc_w(self, node):
         l, r = node.left, node.right
@@ -669,16 +669,44 @@ class AVLTree(object):
                 parent.parent.w -= 1
 
         elif p_w == -2:
-            l_w = parent.left.w
+            left_pivot = parent.left
+            l_w = left_pivot.w
             if l_w in [-1, 0]:
+                print 'right rotate for del'
+
+                self.show()
+                l()
+
                 self.right_rotate_for_del(parent)
+
+                if l_w == 0:
+                    parent.w = -1
+                    left_pivot.w = 1
+                else:  # l_w == -1
+                    parent.w = left_pivot.w = 0
+
             else:  # l_w == 1
+                print 'big right rotate for del'
                 self.big_right_rotate(parent)
         elif p_w == 2:
-            l_w = parent.right.w
-            if l_w in [0, 1]:
+            right_pivot = parent.right
+            r_w = right_pivot.w
+            if r_w in [0, 1]:
+                print 'left rotate for del'
+
+                self.show()
+                l()
+
                 self.left_rotate_for_del(parent)
+
+                if r_w == 0:
+                    parent.w = 1
+                    right_pivot.w = -1
+                else:
+                    parent.w = right_pivot.w = 0
+
             else:  # l_w == -1
+                print 'big left rotate for del'
                 self.big_left_rotate(parent)
 
         self.balance_for_deletion(parent.parent)
@@ -743,11 +771,6 @@ class AVLTree(object):
 
 if __name__ == "__main__":
     avl = AVLTree()
-    # x = [5, 6, 2, 1, 3, 4, 7, 8, 9, 10, 11, ]
-
-    # fixme needs to check all
-
-    # deleting node without left, without right
 
     # right rotate
     # x = [3,2,1]
@@ -778,21 +801,25 @@ if __name__ == "__main__":
     # x = [3,1,7,2,4,9,3.5,5,8,10,6]
     # x = [3,1,7,2,4,9,3.5,5,8,10,3.7]
 
-    # deleting node with left, without right
-    # x = [3, 2, 5, 1, ]
+    # for i in x:
+    #     avl.add(avl.root, i)
 
-    # deleting node with left and right
-    # x = [5,4,7,3,6,9,8]  # del 7
+    # avl.show()
+
+    #---------------------------------------------------
+
+    # deleting
+    x = [6,5]
+    x = [7,6,5]
+
+    # left rotate
+    x = [6,5,7,8]
+    x = [6,5,7,6.5,8]
 
     for i in x:
         avl.add(avl.root, i)
 
-    # avl.traversing2([avl.root])
+    avl.delete(5)
 
     avl.show()
-
-    # avl.delete(5)
-    #
-    # print 80*'-'
-    # avl.show()
-    # print 80*'-'
+    l()
