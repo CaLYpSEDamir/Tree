@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import math
+from simple_helpers import l
 
 
 class Node(object):
@@ -179,17 +180,17 @@ class AVLTree(object):
             self.ADD_change_w_and_check(parent.parent, parent)
         elif p_w == 2:
             if w1 == 1:
-                self.left_rotate(parent, node)
+                self.left_rotate_for_add(parent, node)
             else:  # w1==-1
                 print 'start 2;-1'
-                self.right_rotate(node, node.left, simple_rotate=False)
-                self.left_rotate(node.parent.parent, node.parent)
+                self.right_rotate_for_add(node, node.left, simple_rotate=False)
+                self.left_rotate_for_add(node.parent.parent, node.parent)
         else:  # p_w==-2
             if w1 == -1:
-                self.right_rotate(parent, node)
+                self.right_rotate_for_add(parent, node)
             else:  # w1==1
-                self.left_rotate(node, node.right, -1)
-                self.right_rotate(node.parent.parent, node.parent)
+                self.left_rotate_for_add(node, node.right, -1)
+                self.right_rotate_for_add(node.parent.parent, node.parent)
 
     def change_w_and_check(self, parent, node):
         w1 = node.w
@@ -209,54 +210,71 @@ class AVLTree(object):
             self.change_w_and_check(parent.parent, parent)
         elif p_w == 2:
             if w1 == 1:
-                self.left_rotate(parent, node)
+                print 'left rotate add'
+                self.show()
+                l()
+                self.left_rotate_for_add(parent, node)
+                parent.w = 0
+                node.w = 0
+
             else:  # w1==-1
                 print 'start 2;-1'
                 print 'big left rotate'
+                print node.parent.val, 'parent'
                 print node.val, 'node'
                 print node.left.val, 'left'
-                print node.parent.val, 'parent'
 
-                left_l, left_r = node.left.left, node.left.right
-                if left_l and left_r:
-                    raise Exception('Something went wrong! left_l and left_l are both not empty')
-                if left_l:
+                self.show()
+                l()
+
+                bottom = node.left
+                bottom_w = bottom.w
+
+                if bottom_w == 0:
+                    bottom.w = node.w = parent.w = 0
+                elif bottom_w == 1:
+                    bottom.w = node.w = 0
+                    parent.w = -1
+                else:  # bottom_w == -1
+                    bottom.w = parent.w = 0
                     node.w = 1
-                    node.left.w = node.parent.w = 0
-                elif left_r:
-                    node.parent.w = -1
-                    node.left.w = node.w = 0
-                else:
-                    node.parent.w = node.left.w = node.w = 0
 
-                self.right_rotate(node, node.left, simple_rotate=False)
-                self.left_rotate(node.parent.parent, node.parent, simple_rotate=False)
+                self.right_rotate_for_add(node, node.left)
+                self.left_rotate_for_add(node.parent.parent, node.parent)
         else:  # p_w==-2
             if w1 == -1:
-                self.right_rotate(parent, node)
+                print 'right rotate add'
+                self.show()
+                l()
+                self.right_rotate_for_add(parent, node)
+                parent.w = 0
+                node.w = 0
             else:  # w1==1
                 print 'start -2;1'
                 print 'big right rotate'
+                print node.parent.val, 'parent'
                 print node.val, 'node'
                 print node.right.val, 'right'
-                print node.parent.val, 'parent'
 
-                right_l, right_r = node.right.left, node.right.right
-                if right_l and right_r:
-                    raise Exception('Something went wrong! right_l and right_l are both not empty')
-                if right_r:
-                    node.w = 1
-                    node.right.w = node.parent.w = 0
-                elif right_l:
-                    node.parent.w = -1
-                    node.right.w = node.w = 0
-                else:
-                    node.parent.w = node.right.w = node.w = 0
+                self.show()
+                l()
 
-                self.left_rotate(node, node.right, simple_rotate=False)
-                self.right_rotate(node.parent.parent, node.parent, simple_rotate=False)
+                bottom = node.right
+                bottom_w = bottom.w
 
-    def left_rotate(self, parent, node, simple_rotate=True):
+                if bottom_w == 0:
+                    bottom.w = node.w = parent.w = 0
+                elif bottom_w == 1:
+                    bottom.w = parent.w = 0
+                    node.w = -1
+                else:  # bottom_w == -1
+                    bottom.w = node.w = 0
+                    parent.w = 1
+
+                self.left_rotate_for_add(node, node.right)
+                self.right_rotate_for_add(node.parent.parent, node.parent)
+
+    def left_rotate_for_add(self, parent, node):
         s_parent = parent.parent
         node.parent = s_parent
         if not s_parent:
@@ -275,11 +293,8 @@ class AVLTree(object):
             node.left.type = 'r'
         node.left = parent
         parent.type = 'l'
-        if simple_rotate:
-            parent.w = 0
-            node.w = 0
 
-    def right_rotate(self, parent, node, simple_rotate=True):
+    def right_rotate_for_add(self, parent, node, simple_rotate=True):
         s_parent = parent.parent
         node.parent = s_parent
         if not s_parent:
@@ -298,9 +313,6 @@ class AVLTree(object):
             node.right.type = 'l'
         node.right = parent
         parent.type = 'r'
-        if simple_rotate:
-            parent.w = 0
-            node.w = 0
 
     @staticmethod
     def get_nodes_count(root):
@@ -382,7 +394,7 @@ class AVLTree(object):
             s = [0, ]
         res = zip(li, s)
         gen = (((y-8 if j else y)*' '+str(getattr(x_, 'val', None) or 'N') +
-                '('+str(getattr(x_, 'w', None))+')' +
+                '('+str(getattr(x_, 'w', 'N'))+')' +
                 '('+str(getattr(x_, 'type', None) or 'N')+')'
                 # +'('+str(getattr(x_, 'a', 'N'))+')'
                 # +'('+str(getattr(x_, 'b', 'N'))+')'
@@ -656,13 +668,13 @@ class AVLTree(object):
             else:  # right
                 parent.parent.w -= 1
 
-        elif parent.w == -2:
+        elif p_w == -2:
             l_w = parent.left.w
             if l_w in [-1, 0]:
                 self.right_rotate_for_del(parent)
             else:  # l_w == 1
                 self.big_right_rotate(parent)
-        elif parent.w == 2:
+        elif p_w == 2:
             l_w = parent.right.w
             if l_w in [0, 1]:
                 self.left_rotate_for_del(parent)
@@ -739,31 +751,32 @@ if __name__ == "__main__":
 
     # right rotate
     # x = [3,2,1]
-    # x = [4,3,5,2,1]
     # x = [5,3,6,2,4,1]
     # x = [6,4,7,3,5,8,2,1]
     # -------------------------------
 
     # big right rotate(сначала left, потом right)
     # x = [3,1,2]
-    # x = [2,1,5,4,6,3]
+    # x = [2,1,5,3,4]
+    # x = [3,1,7,2,4,9,3.5,5,6]
+    # x = [3,1,7,2,4,9,3.5,5,3.7]
     # -------------------------------
 
     # left rotate
     # x=[1,2,3]
     # x = [2,1,3,4,5]
     # x = [4,3,6,2,5,7,8,9]
-    # x = [1,-1,4,-2,0.1,3,6,-3,2,5,7,4.5]
-    # x = [1,-1,4,-2,0,3,6,-3,2,5,7,4.5,5.1]
     # x = [3,2,5,1,4,6,7,8]
     # -------------------------------
 
     # big left rotate(сначала right, потом left)
     # x = [1,3,2]
+    # x = [2,1,3,5,4]
+    # x = [2,1,5,3,6,4]
     # x = [2,1,5,4,6,3]
     # x = [2,1,5,4,6,4.5]
-    # x = [2,1,5,4,6,7]
-    # x = [2,1,5,4,6,3]
+    # x = [3,1,7,2,4,9,3.5,5,8,10,6]
+    # x = [3,1,7,2,4,9,3.5,5,8,10,3.7]
 
     # deleting node with left, without right
     # x = [3, 2, 5, 1, ]
