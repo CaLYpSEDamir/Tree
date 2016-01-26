@@ -39,11 +39,11 @@ class Node(object):
     def set_new_val(self, x_m):
         self.val = self.calc_new_val(x_m)
 
-    def copy_node_attrs(self, orig_node, val_to_copy, parent_to_copy):
+    def copy_node_attrs(self, orig_node, parent_to_copy, val, simple_copy=True):
         """
             делает копию ноды при добавлении/замене значения в новое дерево
         """
-        self.val = val_to_copy
+        self.val = val
         self.left = orig_node.left
         self.right = orig_node.right
         self.type = orig_node.type
@@ -52,13 +52,16 @@ class Node(object):
         self.a = orig_node.a
         self.b = orig_node.b
 
-        if parent_to_copy:
+        self.parent = parent_to_copy
+
+        # при простом добаление, типы должны копироваться тоже,
+        # но при ротации этого не надо!
+        # parent_to_copy может быть None
+        if simple_copy and parent_to_copy:
             if orig_node.type == 'l':
                 parent_to_copy.left = self
             else:
                 parent_to_copy.right = self
-
-        self.parent = parent_to_copy
 
 
 class AVLTree(object):
@@ -105,7 +108,7 @@ class AVLTree(object):
                 root.pid2 = pol_id
 
     # добавление нодов в версионное дерево
-    def ADD_create_node_branch(self, orig_tree, val):
+    def add_versionly(self, orig_tree, val):
         """
         Во всех add/del/replace функциях, если self.root.val is None,
         а значит пустое дерево, то копируем с ориг дерева!
@@ -113,8 +116,6 @@ class AVLTree(object):
         """
         # FIXME возможно хватит тока копировать вначале только корень
 
-        # предок для новой ноды
-        parent_for_copy = None
         orig = orig_tree.root
         copy = self.root
 
@@ -124,7 +125,7 @@ class AVLTree(object):
             if orig.val is None:
                 raise Exception("Something went wrong! Tree is empty!")
             # копируем корень ориг дерева
-            copy.copy_node_attrs(orig, orig.val, None)
+            copy.copy_node_attrs(orig, None, orig.val)
             copy.tree_id = id(self)
         # идем вниз, копируя, но со ссылками на parent проблемы
 
@@ -143,8 +144,7 @@ class AVLTree(object):
             # создание копии ноды
             if not child.new_in_v:
                 new_node = Node()
-                new_node.copy_node_attrs(child, child.val, copy)
-                new_node.new_in_v = True
+                new_node.copy_node_attrs(child, copy, child.val)
                 new_node.tree_id = id(self)
                 copy = new_node
             else:
@@ -160,11 +160,14 @@ class AVLTree(object):
             else:
                 copy.right = new_node
                 copy.w += 1
-            self.ADD_change_w_and_check(copy.parent, copy)
+            self.change_w_and_check_versionly(copy)
 
-    def ADD_change_w_and_check(self, parent, node):
-        w1 = node.w
-        if w1 == 0:
+    def change_w_and_check_versionly(self, node):
+
+        parent = node.parent
+
+        node_w = node.w
+        if node_w == 0:
             return
         if not parent:
             return
@@ -177,24 +180,59 @@ class AVLTree(object):
             return
 
         if p_w in (-1, 1):
-            self.ADD_change_w_and_check(parent.parent, parent)
+            self.change_w_and_check_versionly(parent)
         elif p_w == 2:
-            if w1 == 1:
-                self.left_rotate_for_add(parent, node)
-            else:  # w1==-1
+            if node_w == 1:
+                print 'left rotate for add'
+                self.left_rotate_versionly(node)
+                parent.w = 0
+                node.w = 0
+            else:  # node_w==-1
                 print 'start 2;-1'
+                print 'big left rotate for add'
+                bottom = node.left
+                bottom_w = bottom.w
+
+                if bottom_w == 0:
+                    bottom.w = node.w = parent.w = 0
+                elif bottom_w == 1:
+                    bottom.w = node.w = 0
+                    parent.w = -1
+                else:  # bottom_w == -1
+                    bottom.w = parent.w = 0
+                    node.w = 1
+
                 self.right_rotate_for_add(node, node.left)
                 self.left_rotate_for_add(node.parent.parent, node.parent)
         else:  # p_w==-2
-            if w1 == -1:
-                self.right_rotate_for_add(parent, node)
-            else:  # w1==1
+            if node_w == -1:
+                print 'right rotate for add'
+
+                self.right_rotate_versionly(parent, node)
+                parent.w = 0
+                node.w = 0
+            else:  # node_w==1
+                print 'start -2;1'
+                print 'big right rotate for add'
+
+                bottom = node.right
+                bottom_w = bottom.w
+
+                if bottom_w == 0:
+                    bottom.w = node.w = parent.w = 0
+                elif bottom_w == 1:
+                    bottom.w = parent.w = 0
+                    node.w = -1
+                else:  # bottom_w == -1
+                    bottom.w = node.w = 0
+                    parent.w = 1
+
                 self.left_rotate_for_add(node, node.right)
                 self.right_rotate_for_add(node.parent.parent, node.parent)
 
     def change_w_and_check(self, parent, node):
-        w1 = node.w
-        if w1 == 0:
+        node_w = node.w
+        if node_w == 0:
             return
         if not parent:
             return
@@ -209,20 +247,16 @@ class AVLTree(object):
         if p_w in (-1, 1):
             self.change_w_and_check(parent.parent, parent)
         elif p_w == 2:
-            if w1 == 1:
-                print 'left rotate add'
-                self.show()
-                l()
+            if node_w == 1:
+                print 'left rotate for add'
+
                 self.left_rotate_for_add(parent, node)
                 parent.w = 0
                 node.w = 0
 
-            else:  # w1==-1
+            else:  # node_w==-1
                 print 'start 2;-1'
-                print 'big left rotate'
-
-                self.show()
-                l()
+                print 'big left rotate for add'
 
                 bottom = node.left
                 bottom_w = bottom.w
@@ -239,19 +273,15 @@ class AVLTree(object):
                 self.right_rotate_for_add(node, node.left)
                 self.left_rotate_for_add(node.parent.parent, node.parent)
         else:  # p_w == -2
-            if w1 == -1:
-                print 'right rotate add'
-                self.show()
-                l()
+            if node_w == -1:
+                print 'right rotate for add'
+
                 self.right_rotate_for_add(parent, node)
                 parent.w = 0
                 node.w = 0
-            else:  # w1==1
+            else:  # node_w==1
                 print 'start -2;1'
-                print 'big right rotate'
-
-                self.show()
-                l()
+                print 'big right rotate for add'
 
                 bottom = node.right
                 bottom_w = bottom.w
@@ -267,6 +297,41 @@ class AVLTree(object):
 
                 self.left_rotate_for_add(node, node.right)
                 self.right_rotate_for_add(node.parent.parent, node.parent)
+
+    def left_rotate_versionly(self, node):
+        """
+        У parent, node, parent.parent new_in_v всегда True
+        """
+        parent = node.parent
+        s_parent = parent.parent
+        node.parent = s_parent
+
+        if not s_parent:
+            node.type = None
+            self.root = node
+        else:
+            if parent.type == 'l':
+                s_parent.left = node
+                node.type = 'l'
+            elif parent.type == 'r':
+                s_parent.right = node
+                node.type = 'r'
+        parent.parent = node
+
+        # копируем левого сына of node, если он не пуст
+        node_left = node.left
+        if not node_left:
+            parent.right = node_left
+        else:
+            new_node = Node()
+            new_node.copy_node_attrs(
+                node_left, parent, node_left.val, simple_copy=False)
+            new_node.tree_id = id(self)
+            new_node.type = 'r'
+            parent.right = new_node
+
+        node.left = parent
+        parent.type = 'l'
 
     def left_rotate_for_add(self, parent, node):
         s_parent = parent.parent
@@ -285,8 +350,44 @@ class AVLTree(object):
         parent.right = node.left
         if node.left:
             node.left.type = 'r'
+            node.left.parent = parent
         node.left = parent
         parent.type = 'l'
+
+    def right_rotate_versionly(self, node):
+        """
+        У parent, node, parent.parent new_in_v всегда True
+        """
+        parent = node.parent
+        s_parent = parent.parent
+        node.parent = s_parent
+
+        if not s_parent:
+            node.type = None
+            self.root = node
+        else:
+            if parent.type == 'l':
+                s_parent.left = node
+                node.type = 'l'
+            elif parent.type == 'r':
+                s_parent.right = node
+                node.type = 'r'
+        parent.parent = node
+
+        # копируем правго сына of node, если он не пуст
+        node_right = node.right
+        if not node_right:
+            parent.left = node_right
+        else:
+            new_node = Node()
+            new_node.copy_node_attrs(
+                node_right, parent, node_right.val, simple_copy=False)
+            new_node.tree_id = id(self)
+            new_node.type = 'l'
+            parent.left = new_node
+        
+        node.right = parent
+        parent.type = 'r'
 
     def right_rotate_for_add(self, parent, node):
         s_parent = parent.parent
@@ -305,6 +406,7 @@ class AVLTree(object):
         parent.left = node.right
         if node.right:
             node.right.type = 'l'
+            node.right.parent = parent
         node.right = parent
         parent.type = 'r'
 
@@ -394,7 +496,7 @@ class AVLTree(object):
                 # +'('+str(getattr(x_, 'b', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid1', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid2', 'N'))+')'
-                # +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
+                +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
                 # +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
                 )
                for j, (x_, y) in enumerate(res)
@@ -581,15 +683,9 @@ class AVLTree(object):
         parent.left = node.right
         if node.right:
             node.right.type = 'l'
+            node.right.parent = parent
         node.right = parent
         parent.type = 'r'
-        # if simple_rotate:
-        #     if parent.left:
-        #         parent.w = 0 if node.w == -1 else -1
-        #         node.w += 1
-        #     else:
-        #         parent.w = 0
-        #         node.w = 0
 
     def left_rotate_for_del(self, parent):
         node = parent.right
@@ -609,40 +705,21 @@ class AVLTree(object):
         parent.right = node.left
         if node.left:
             node.left.type = 'r'
+            node.left.parent = parent
         node.left = parent
         parent.type = 'l'
-
-        # if simple_rotate:
-        #     if parent.right:
-        #         parent.w = 0 if node.w == 1 else 1
-        #         node.w -= 1
-        #     else:
-        #         parent.w = 0
-        #         node.w = 0
-
-    def calc_w(self, node):
-        l, r = node.left, node.right
-        node.w = 0
-        if l:
-            node.w -= 1
-        if r:
-            node.w += 1
 
     def big_right_rotate(self, parent):
         self.left_rotate_for_del(parent.left)  # parent.left, parent.left.right
         self.right_rotate_for_del(parent)
 
-        # parent.parent.w = 0              #         5 - parent          3 - parent.parent
-        # self.calc_w(parent)              #      3     7  del(7) ->  4     5 - parent
-        # self.calc_w(parent.parent.left)  #        4                  \ parent.parent.left
+        #         5 - parent          3 - parent.parent
+        #      3     7  del(7) ->  4     5 - parent
+        #        4                  \ parent.parent.left
 
     def big_left_rotate(self, parent):
         self.right_rotate_for_del(parent.right)  # parent.left, parent.left.right
         self.left_rotate_for_del(parent)
-
-        # parent.parent.w = 0
-        # self.calc_w(parent)
-        # self.calc_w(parent.parent.right)
 
     def balance_for_deletion(self, parent):
         p_w = parent.w
@@ -663,9 +740,6 @@ class AVLTree(object):
             l_w = left_pivot.w
             if l_w in [-1, 0]:
                 print 'right rotate for del'
-
-                self.show()
-                l()
 
                 self.right_rotate_for_del(parent)
 
@@ -698,9 +772,6 @@ class AVLTree(object):
             r_w = right_pivot.w
             if r_w in [0, 1]:
                 print 'left rotate for del'
-
-                self.show()
-                l()
 
                 self.left_rotate_for_del(parent)
 
