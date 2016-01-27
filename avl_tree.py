@@ -182,14 +182,15 @@ class AVLTree(object):
         if p_w in (-1, 1):
             self.change_w_and_check_versionly(parent)
         elif p_w == 2:
+            # 2 1
             if node_w == 1:
-                print 'left rotate for add'
+                print 'left rotate versionly-add'
                 self.left_rotate_versionly(node)
-                parent.w = 0
-                node.w = 0
+                parent.w = node.w = 0
+            # 2 -1
             else:  # node_w==-1
                 print 'start 2;-1'
-                print 'big left rotate for add'
+                print 'big left rotate versionly-add'
                 bottom = node.left
                 bottom_w = bottom.w
 
@@ -202,9 +203,14 @@ class AVLTree(object):
                     bottom.w = parent.w = 0
                     node.w = 1
 
-                self.right_rotate_for_add(node, node.left)
-                self.left_rotate_for_add(node.parent.parent, node.parent)
-        else:  # p_w==-2
+                node_for_big_rotate = node.left
+
+                self.right_rotate_versionly(node_for_big_rotate)
+                self.left_rotate_versionly(node_for_big_rotate)
+
+        # p_w = -2
+        else:
+            # -2 1
             if node_w == -1:
                 print 'right rotate for add'
 
@@ -321,7 +327,7 @@ class AVLTree(object):
         # копируем левого сына of node, если он не пуст
         node_left = node.left
         if not node_left:
-            parent.right = node_left
+            parent.right = None
         else:
             new_node = Node()
             new_node.copy_node_attrs(
@@ -377,7 +383,7 @@ class AVLTree(object):
         # копируем правго сына of node, если он не пуст
         node_right = node.right
         if not node_right:
-            parent.left = node_right
+            parent.left = None
         else:
             new_node = Node()
             new_node.copy_node_attrs(
@@ -385,7 +391,7 @@ class AVLTree(object):
             new_node.tree_id = id(self)
             new_node.type = 'l'
             parent.left = new_node
-        
+
         node.right = parent
         parent.type = 'r'
 
@@ -937,7 +943,6 @@ if __name__ == "__main__":
     # x = [1,3,2]
     # x = [2,1,3,5,4]
     # x = [2,1,5,3,6,4]
-    # x = [2,1,5,4,6,3]
     # x = [2,1,5,4,6,4.5]
     # x = [3,1,7,2,4,9,3.5,5,8,10,6]
     # x = [3,1,7,2,4,9,3.5,5,8,10,3.7]

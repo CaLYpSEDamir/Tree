@@ -250,12 +250,25 @@ if __name__ == "__main__":
     # l()
 
     avl = AVLTree()
-
+    # left rotate
     # x = [1,2,]
-    x = [5,1,7,6,8,]  # add 9 (avl2.ADD_versionly(avl, 9))
+    # x = [5,1,7,6,8,]  # add 9 (avl2.ADD_versionly(avl, 9))
     # x = [2,1,3,4,]  # 5
-    x = [3,2,5,4,6,]  # 7
-    x = [4,2,6,1,3,5,8,7,9]  # 10
+    # x = [3,2,5,4,6,]  # 7
+    # x = [4,2,6,1,3,5,8,7,9]  # 10
+    # x = [2,1,3,4,]  # 5
+    x = [2,1,5,3,6]  # 4
+    # big left rotate
+    # x = [1,3]  # 2
+    # x = [2,1,3,5,]  # 4
+    # x = [2,1,6,4,7]  # 5
+    # x = [4,1,5,3]  # 2
+    # x = [3,1,7,2,4,9,3.5,5,8,10,]  # 6
+    x = [3,1,7,2,4,9,3.5,5,8,10,]  # 3.7
+
+
+    # big right rotate
+    # x = [2,1,6,4,]  # 5
 
     for i in x:
         avl.add(avl.root, i)
@@ -263,7 +276,7 @@ if __name__ == "__main__":
     avl.show()
 
     avl2 = AVLTree()
-    avl2.add_versionly(avl, 10)
+    avl2.add_versionly(avl, 3.7)
     l()
     avl2.show()
 
