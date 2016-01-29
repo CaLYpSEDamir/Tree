@@ -127,12 +127,13 @@ class AVLTree(object):
             # копируем корень ориг дерева
             copy.copy_node_attrs(orig, None, orig.val)
             copy.tree_id = 'New'#str(id(self))+' N'
-        # идем вниз, копируя, но со ссылками на parent проблемы
 
+        # fixme со ссылками на parent проблемы
         if copy.val == val:
             print 'Value {0} is already in Tree root!'.format(str(val))
             return
 
+        # идем вниз, копируя,
         # fixme не обработано, если значение уже есть, то pol_id2 сувать
         child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
 
@@ -529,25 +530,6 @@ class AVLTree(object):
         if any(new_li):
             self.traversing(new_li, spaces)
 
-    def get_node(self, root, val):
-        r_v = root.val
-        if root.val is None:
-            node = None
-        else:
-            if r_v > val:
-                if root.left:
-                    node = self.get_node(root.left, val)
-                else:
-                    return None
-            elif r_v < val:
-                if root.right:
-                    node = self.get_node(root.right, val)
-                else:
-                    return None
-            else:
-                return root
-        return node
-
     def create_node_branch(self, del_val, new_info, orig_tree):
 
         copy_par = None
@@ -880,25 +862,77 @@ class AVLTree(object):
             self.delete(min_val)
             node.val = min_val
 
-    def delete_versionly(self, orig_tree, val):
+    def get_node(self, root, val):
+        r_v = root.val
+        if root.val is None:
+            node = None
+        else:
+            if r_v > val:
+                if root.left:
+                    node = self.get_node(root.left, val)
+                else:
+                    return None
+            elif r_v < val:
+                if root.right:
+                    node = self.get_node(root.right, val)
+                else:
+                    return None
+            else:
+                return root
+        return node
+
+    def get_node_versionly(self, orig_tree, val):
 
         orig = orig_tree.root
         copy = self.root
 
-        # вроде такого быть не должно, чтобы оба дерева были пусты
-        if orig.val is None:
-            raise Exception("Something went wrong! Tree is empty!")
-
-        # проверяем на наличие значения
-        node = orig_tree.get_node(orig, val)
-        if not node:
-            raise Exception('No such element to delete!')
-
         # значит копи-дерево пусто и будем работать с ориг-деревом
         if copy.val is None:
+            # вроде такого быть не должно, чтобы оба дерева были пусты
+            if orig.val is None:
+                raise Exception("Something went wrong! Tree is empty!")
+
             # копируем корень ориг дерева
             copy.copy_node_attrs(orig, None, orig.val)
             copy.tree_id = 'New'#str(id(self))+' N'
+
+        if copy.val == val:
+            return copy
+
+        # идем вниз, копируя,
+        # fixme не обработано, если значение уже есть, то pol_id2 сувать
+        child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
+
+        while child.val != val:
+            # создание копии ноды
+            if not child.new_in_v:
+                new_node = Node()
+                new_node.copy_node_attrs(child, copy, child.val)
+                new_node.tree_id = 'New'# str(id(self))+' N'
+                copy = new_node
+            else:
+                copy = child
+            child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
+        else:
+            if not child.new_in_v:
+                new_node = Node()
+                new_node.copy_node_attrs(child, copy, child.val)
+                new_node.tree_id = 'New'# str(id(self))+' N'
+
+                return new_node
+            else:
+                return child
+
+        raise Exception("Tree was traversed, but no node found!")
+
+    def delete_versionly(self, orig_tree, val):
+
+        # проверяем на наличие значения в ориг дереве
+        node_exists = orig_tree.get_node(orig_tree.root, val)
+        if not node_exists:
+            raise Exception('No such element to delete!')
+
+        node = self.get_node_versionly(orig_tree, val)
 
         l, r, typ, par = node.left, node.right, node.type, node.parent
         if not l and not r:
