@@ -794,6 +794,8 @@ class AVLTree(object):
                     right_pivot.w = -1
                 else:
                     parent.w = right_pivot.w = 0
+                print '-----------------'
+                self.show()
 
             else:  # l_w == -1
                 print 'big left rotate for del versionly'
@@ -1035,7 +1037,7 @@ class AVLTree(object):
         node = self.get_node_versionly(orig_tree, val)
         print 'node', node
         l, r, typ, par = node.left, node.right, node.type, node.parent
-        print 'par', par
+        print 'parinfo', l, r, typ, par, par.w
         if not l and not r:
             print 'not l, not r'
             # если удаляем корень без детей, то сносим дерево
