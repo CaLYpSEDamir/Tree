@@ -280,7 +280,12 @@ if __name__ == "__main__":
     # x = [3,1,7,2,4,9,3.5,5,]  # 6
 
     # get_node
-    x = [2,1,3]
+    # x = [2,1,3]
+    # x = [1,]
+    # x = []
+
+    # delete versionly
+    x = [2,1,3,4]
 
     for i in x:
         avl.add(avl.root, i)
@@ -290,7 +295,10 @@ if __name__ == "__main__":
     avl2 = AVLTree()
     # avl2.add_versionly(avl, 3.7)
 
-    print avl2.get_node_versionly(avl, 1)
+    # print avl2.get_node_versionly(avl, 1)
+
+    # avl.delete(1)
+    avl2.delete_versionly(avl, 1)
 
     l()
     avl2.show()

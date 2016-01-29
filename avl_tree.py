@@ -406,9 +406,11 @@ class AVLTree(object):
         parent.type = 'r'
 
     def right_rotate_for_add(self, node):
+
         parent = node.parent
         s_parent = parent.parent
         node.parent = s_parent
+
         if not s_parent:
             self.root = node
             self.root.type = None
@@ -514,7 +516,7 @@ class AVLTree(object):
                 # +'('+str(getattr(x_, 'pid1', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid2', 'N'))+')'
                 +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
-                # +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
+                +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
                 )
                for j, (x_, y) in enumerate(res)
             )
@@ -645,11 +647,35 @@ class AVLTree(object):
         spaces = AVLTree.get_spaces(count, 7)
         self.traversing([self.root, ], spaces)
 
-    def right_rotate_del_versionly(self, parent):
-        node = parent.left
+    # def right_rotate_del_versionly(self, parent):
+    #     node = parent.left
+    #
+    #     s_parent = parent.parent
+    #     node.parent = s_parent
+    #     if not s_parent:
+    #         self.root = node
+    #         self.root.type = None
+    #     else:
+    #         if parent.type == 'l':
+    #             s_parent.left = node
+    #             node.type = 'l'
+    #         elif parent.type == 'r':
+    #             s_parent.right = node
+    #             node.type = 'r'
+    #     parent.parent = node
+    #     parent.left = node.right
+    #     if node.right:
+    #         node.right.type = 'l'
+    #         node.right.parent = parent
+    #     node.right = parent
+    #     parent.type = 'r'
 
+    def right_rotate_for_del(self, node):
+
+        parent = node.parent
         s_parent = parent.parent
         node.parent = s_parent
+
         if not s_parent:
             self.root = node
             self.root.type = None
@@ -668,33 +694,12 @@ class AVLTree(object):
         node.right = parent
         parent.type = 'r'
 
-    def right_rotate_for_del(self, parent):
-        node = parent.left
+    def left_rotate_for_del(self, node):
 
+        parent = node.parent
         s_parent = parent.parent
         node.parent = s_parent
-        if not s_parent:
-            self.root = node
-            self.root.type = None
-        else:
-            if parent.type == 'l':
-                s_parent.left = node
-                node.type = 'l'
-            elif parent.type == 'r':
-                s_parent.right = node
-                node.type = 'r'
-        parent.parent = node
-        parent.left = node.right
-        if node.right:
-            node.right.type = 'l'
-            node.right.parent = parent
-        node.right = parent
-        parent.type = 'r'
 
-    def left_rotate_for_del(self, parent):
-        node = parent.right
-        s_parent = parent.parent
-        node.parent = s_parent
         if not s_parent:
             self.root = node
             self.root.type = None
@@ -713,19 +718,108 @@ class AVLTree(object):
         node.left = parent
         parent.type = 'l'
 
-    def big_right_rotate(self, parent):
-        self.left_rotate_for_del(parent.left)  # parent.left, parent.left.right
-        self.right_rotate_for_del(parent)
+    # def big_right_rotate(self, parent):
+    #     self.left_rotate_for_del(parent.left)  # parent.left, parent.left.right
+    #     self.right_rotate_for_del(parent)
+    #
+    #     #         5 - parent          3 - parent.parent
+    #     #      3     7  del(7) ->  4     5 - parent
+    #     #        4                  \ parent.parent.left
+    #
+    # def big_left_rotate(self, parent):
+    #     self.right_rotate_for_del(parent.right)  # parent.left, parent.left.right
+    #     self.left_rotate_for_del(parent)
 
-        #         5 - parent          3 - parent.parent
-        #      3     7  del(7) ->  4     5 - parent
-        #        4                  \ parent.parent.left
+    def balance_for_deletion_versionly(self, parent):
 
-    def big_left_rotate(self, parent):
-        self.right_rotate_for_del(parent.right)  # parent.left, parent.left.right
-        self.left_rotate_for_del(parent)
+        print 'balance_for_deletion_versionly', parent
+        p_w = parent.w
+        if p_w in [-1, 1]:
+            return
+
+        elif p_w == 0:
+            # дошли до корня
+            if parent.type is None:
+                return
+            elif parent.type == 'l':
+                parent.parent.w += 1
+            else:  # right
+                parent.parent.w -= 1
+
+        elif p_w == -2:
+            left_pivot = parent.left
+            l_w = left_pivot.w
+            if l_w in [-1, 0]:
+                print 'right rotate for del versionly'
+
+                self.right_rotate_versionly(left_pivot)
+
+                if l_w == 0:
+                    parent.w = -1
+                    left_pivot.w = 1
+                else:  # l_w == -1
+                    parent.w = left_pivot.w = 0
+
+            else:  # l_w == 1
+                print 'big right rotate for del versionly'
+
+                node = parent.left
+                bottom = node.right
+                bottom_w = bottom.w
+
+                if bottom_w == 0:
+                    bottom.w = node.w = parent.w = 0
+                elif bottom_w == 1:
+                    bottom.w = parent.w = 0
+                    node.w = -1
+                else:  # bottom_w == -1
+                    bottom.w = node.w = 0
+                    parent.w = 1
+
+                node_for_big_rotate = left_pivot.right
+
+                self.left_rotate_versionly(node_for_big_rotate)
+                self.right_rotate_versionly(node_for_big_rotate)
+
+        elif p_w == 2:
+            right_pivot = parent.right
+            r_w = right_pivot.w
+            if r_w in [0, 1]:
+                print 'left rotate for del versionly'
+
+                self.left_rotate_versionly(right_pivot)
+
+                if r_w == 0:
+                    parent.w = 1
+                    right_pivot.w = -1
+                else:
+                    parent.w = right_pivot.w = 0
+
+            else:  # l_w == -1
+                print 'big left rotate for del versionly'
+
+                node = parent.right
+                bottom = node.left
+                bottom_w = bottom.w
+
+                if bottom_w == 0:
+                    bottom.w = node.w = parent.w = 0
+                elif bottom_w == 1:
+                    bottom.w = node.w = 0
+                    parent.w = -1
+                else:  # bottom_w == -1
+                    bottom.w = parent.w = 0
+                    node.w = 1
+
+                node_for_big_rotate = right_pivot.left
+
+                self.right_rotate_versionly(node_for_big_rotate)
+                self.left_rotate_versionly(node_for_big_rotate)
+
+        self.balance_for_deletion_versionly(parent.parent)
 
     def balance_for_deletion(self, parent):
+        print 'simple delete parent', parent
         p_w = parent.w
         if p_w in [-1, 1]:
             return
@@ -745,7 +839,7 @@ class AVLTree(object):
             if l_w in [-1, 0]:
                 print 'right rotate for del'
 
-                self.right_rotate_for_del(parent)
+                self.right_rotate_for_del(left_pivot)
 
                 if l_w == 0:
                     parent.w = -1
@@ -769,7 +863,10 @@ class AVLTree(object):
                     bottom.w = node.w = 0
                     parent.w = 1
 
-                self.big_right_rotate(parent)
+                node_for_big_rotate = left_pivot.right
+
+                self.left_rotate_for_del(node_for_big_rotate)
+                self.right_rotate_for_del(node_for_big_rotate)
 
         elif p_w == 2:
             right_pivot = parent.right
@@ -777,7 +874,7 @@ class AVLTree(object):
             if r_w in [0, 1]:
                 print 'left rotate for del'
 
-                self.left_rotate_for_del(parent)
+                self.left_rotate_for_del(right_pivot)
 
                 if r_w == 0:
                     parent.w = 1
@@ -801,7 +898,10 @@ class AVLTree(object):
                     bottom.w = parent.w = 0
                     node.w = 1
 
-                self.big_left_rotate(parent)
+                node_for_big_rotate = right_pivot.left
+
+                self.right_rotate_for_del(node_for_big_rotate)
+                self.left_rotate_for_del(node_for_big_rotate)
 
         self.balance_for_deletion(parent.parent)
 
@@ -933,9 +1033,11 @@ class AVLTree(object):
             raise Exception('No such element to delete!')
 
         node = self.get_node_versionly(orig_tree, val)
-
+        print 'node', node
         l, r, typ, par = node.left, node.right, node.type, node.parent
+        print 'par', par
         if not l and not r:
+            print 'not l, not r'
             # если удаляем корень без детей, то сносим дерево
             if typ is None:
                 self.root = Node()
@@ -947,7 +1049,7 @@ class AVLTree(object):
                 else:  # right
                     par.right = None
                     par.w -= 1
-                self.balance_for_deletion(par)
+                self.balance_for_deletion_versionly(par)
 
         elif l and not r:
             if typ is None:
