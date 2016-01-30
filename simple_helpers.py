@@ -20,8 +20,8 @@ def replace_node_val(next_tree, del_val, new_info):
         node.pid2 = new_info['pol_id']
 
 
-def create_node_branch(next_tree, del_val, new_info, prev_tree):
-    next_tree.create_node_branch(del_val, new_info, prev_tree)
+# def create_node_branch(next_tree, del_val, new_info, prev_tree):
+#     next_tree.create_node_branch(del_val, new_info, prev_tree)
 
 
 def process_add_del(to_del, to_add, next_tree, prev_tree):
@@ -60,7 +60,7 @@ def process_add_del(to_del, to_add, next_tree, prev_tree):
             i_d, i_a = i_pair
             if i_d and i_a:
                 # replace_node_val(next_tree, first['val'], second)
-                create_node_branch(next_tree, i_d['val'], i_a, prev_tree)
+                # create_node_branch(next_tree, i_d['val'], i_a, prev_tree)
                 print prev_tree
                 prev_tree.show()
                 print next_tree

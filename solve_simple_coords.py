@@ -258,6 +258,7 @@ if __name__ == "__main__":
     # x = [4,2,6,1,3,5,8,7,9]  # 10
     # x = [2,1,3,4,]  # 5
     # x = [2,1,5,3,6]  # 4
+    # x = [4,2,8,1,3,6,10,5,7,9,11,]  # 12
 
     # big left rotate
     # x = [1,3]  # 2
@@ -285,7 +286,34 @@ if __name__ == "__main__":
     # x = []
 
     # delete versionly
-    x = [2,1,3,4]
+    # left rotate
+    # x = [5,1,7,6,8,]  # del 1
+    # x = [2,1,4,3,5]  # del 1
+    # x = [3,2,5,1,4,7,6,8]  # del 4
+
+
+    # big left rotate
+    # x = [2,1,4,3]  # del 1
+
+    # right rotate
+    # x = [3,2,4,1]  # 4
+
+    # big right rotate
+    # x = [3,1,4,2]  # 4
+    # x = [6,4,7,2,5,8,3]  # 5
+    # x = [-3,-1,-7,-2,-5,-9,-4,-6]  # -2
+
+    # state of node to delete
+    # has l, no r
+    # x = [2,1,4,3]  # 4
+    # x = [3,2,4,1]  # 1
+    # has r, no l
+    # x = [3,1,4,2]  # 1
+    # x = [5,3,10,2,4,8,11,1,6,9,12,6,7]  # 4
+    # x = [5,2,10,1,4,8,11,3,6,9,12,6,7]  # 1
+    # has r, has l
+    x = [2,1,3]  # 2
+    x = [4,2,5,1,3,6]  # 2
 
     for i in x:
         avl.add(avl.root, i)
@@ -293,19 +321,13 @@ if __name__ == "__main__":
     avl.show()
 
     avl2 = AVLTree()
-    # avl2.add_versionly(avl, 3.7)
 
+    avl2.delete_versionly(avl, 2)
+
+    # avl2.add_versionly(avl, 12)
     # print avl2.get_node_versionly(avl, 1)
-
-    # avl.delete(1)
-    avl2.delete_versionly(avl, 1)
-
+    # l()
+    # avl.show()
     l()
     avl2.show()
-
-
-
-
-
-
 
