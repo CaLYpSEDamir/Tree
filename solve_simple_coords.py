@@ -225,12 +225,12 @@ if __name__ == "__main__":
     # all_coords_len = len(SORTED_COORDINATES)
 
     # пока не достигли конца строим деревья
-    # next_x1 = process_tree()
-    # print 'next_x1', next_x1
-    # next_x1 = process_tree()
-    # print 'next_x1', next_x1
+    next_x1 = process_tree()
+    print 'next_x1', next_x1
+    next_x1 = process_tree()
+    print 'next_x1', next_x1
     # while next_x1 is not None:
-    #     next_x1 = process_tree()
+    next_x1 = process_tree()
 
     # print ALL_XS
     # second_tree = ALL_XS[1][1]

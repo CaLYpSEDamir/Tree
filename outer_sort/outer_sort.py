@@ -80,38 +80,35 @@ def coord_processing(pol_id, icoords):
 if platform.system() == 'Windows':
     # fixme прописать нужное
     files_dir = 'c://python27/tree/EttonProducts/offline/Files/{0}'
-    dma_file = 'c://python27/tree/EttonProducts/offline/dma.data'
-    # dma_file = 'c://python27/tree/EttonProducts/offline/dma-cut'
+    # dma_file = 'c://python27/tree/EttonProducts/offline/dma.data'
+    dma_file = 'c://python27/tree/EttonProducts/offline/dma-cut'
 else:
     files_dir = '/home/damir/Projects/EttonProducts/offline/Files/{0}'
     dma_file = '/home/damir/Projects/EttonProducts/offline/dma.data'
 
-if 1:
-    with open(dma_file) as dma:  # 210 polygons, 9797 coordinates
-        j = 0
-        l = []
-        for line in dma:
-            pol_id, s, coords = line.split('\t')
-            icoords = imap(lambda x: x.split(), coords.split(','))
-            l.extend(coord_processing(pol_id, icoords))
 
-            if len(l) > 1000:
-                print len(l), 'len is up 1000'
+with open(dma_file) as dma:  # 210 polygons, 9797 coordinates (8792)
+    j = 0
+    l = []
+    for line in dma:
+        pol_id, s, coords = line.split('\t')
+        icoords = imap(lambda x: x.split(), coords.split(','))
+        l.extend(coord_processing(pol_id, icoords))
 
-                l.sort(key=lambda el: (el[0], el[1]))
+        if len(l) > 1000:
+            print len(l), 'len is up 1000'
 
-                with open(files_dir.format('file{0}'.format(j)), 'w') as f:
-                    for li in l:
-                        f.write(' '.join(imap(str, li))+'\n')
+            l.sort(key=lambda el: (el[0], el[1]))
 
-                l = []
-                j += 1
+            with open(files_dir.format('f{0}'.format(j)), 'w') as f:
+                for li in l:
+                    f.write(' '.join(imap(str, li))+'\n')
+
+            l = []
+            j += 1
 
             # if j == 2:
             #     break
-#
-# if os.path.exists('c://python27/tree/EttonProducts/offline/Files/file0file1'):
-#         os.remove('c://python27/tree/EttonProducts/offline/Files/file0file1')
 
 files_ = next(os.walk(files_dir.format('')))[2]
 
@@ -128,10 +125,6 @@ def get_file_next_line(filename):
     return f_line
 
 
-def get_str(lil):
-    return ' '.join(lil) + '\n'
-
-
 def merge(files):
     # не обрабатывается, если все данные уместились в один файл изначально
     if len(files) > 1:
@@ -143,13 +136,10 @@ def merge(files):
                     f2_line = get_file_next_line(f2)
                     while 1:
                         if f1_line and f2_line:
-                            # print 'f1_line and f2_line'
                             f1_info = f1_line.split()
                             f2_info = f2_line.split()
                             f1_x = float(f1_info[0])
                             f2_x = float(f2_info[0])
-                            # print 'f1_x', f1_x
-                            # print 'f2_x', f2_x
                             if f1_x < f2_x:
                                 f_merge.write(f1_line)
                                 f1_line = get_file_next_line(f1)
@@ -171,17 +161,12 @@ def merge(files):
 
                         elif f1_line is None and f2_line is None:
                             break
-                        # elif f1_line == '':
-                        #     f1_line = get_file_next_line(f1)
-                        # elif f2_line == '':
-                        #     f2_line = get_file_next_line(f2)
                         elif f2_line is None:
                             while f1_line:
                                 f_merge.write(f1_line)
                                 f1_line = get_file_next_line(f1)
                             break
                         else:  # f1_line is None
-                            # print 'f1-line is None'
                             while f2_line:
                                 f_merge.write(f2_line)
                                 f2_line = get_file_next_line(f2)
@@ -198,19 +183,3 @@ def merge(files):
     else:
         pass
 merge(files_)
-
-# with open('c://python27/tree/EttonProducts/offline/Files/file1') as f:
-#     print f.next()
-#     print f.next()
-
-
-
-
-
-
-
-
-
-
-
-
