@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import math
-from simple_helpers import l
 
 
 class Node(object):

@@ -330,4 +330,6 @@ if __name__ == "__main__":
     # avl.show()
     l()
     avl2.show()
-
+    import os
+    print os.path.dirname(__file__)
+    # print dir(__file__)
