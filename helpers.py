@@ -1,8 +1,82 @@
 # -*- coding: utf-8 -*-
-
+import re
 from itertools import groupby, izip_longest
 from operator import itemgetter
 from collections import Counter
+
+
+def find_middle_x(x1, x2):
+    cut_x1_i = x1.index('.')+11
+    cut_x2_i = x2.index('.')+11
+    cut_x1, prec_x1 = float(x1[:cut_x1_i]), x1[cut_x1_i:]
+    cut_x2, prec_x2 = float(x2[:cut_x2_i]), x1[cut_x2_i:]
+    print x1[:cut_x1_i], repr(float(x1[:cut_x1_i]))
+    print cut_x1, cut_x2, x2[:cut_x2_i]
+    fl_midl = (cut_x1 + cut_x2) / 2
+    print fl_midl
+    r = re.findall(r'^\d+.\d{0,10}', str(fl_midl))
+    q = re.split(r'^\d+.\d{0,10}', str(fl_midl))[1]
+
+
+
+    print r,q
+
+    s_midl = str(fl_midl)
+    cut_midl_i = s_midl.index('.')+10
+    cut_midl = s_midl[:cut_midl_i]
+    cut_prec = s_midl[cut_midl_i:]
+
+    if all([prec_x1, prec_x2]):
+        l1 = len(prec_x1)
+        l2 = len(prec_x2)
+        prec_f = int(prec_x1)*(10**(-1)*l1) + int(prec_x2)*(10**(-1)*l2)
+    elif prec_x1:
+        prec_f = int(prec_x1)*(10**(-1)*len(prec_x1))
+    elif prec_x2:
+        prec_f = int(prec_x2)*(10**(-1)*len(prec_x2))
+    else:
+        prec_f = ''
+
+    if cut_prec:
+        prec_f += int(cut_prec)*(10**(-1)*len(cut_prec))
+    print cut_midl
+    print prec_f
+    return cut_midl + ":" + str(prec_f)
+
+
+print find_middle_x('123.0000000003123', '123.0000000004123')
+
+
+
+
+def get_A_B(x1, y1, x2, y2):
+
+    if x1 == x2:
+        return 'undf', 'undf'
+
+    x1 = float(x1)
+    x2 = float(x2)
+    y1 = float(y1)
+    y2 = float(y2)
+
+    if not x1:
+        b = y1
+        a = (y2-b)/x2
+    elif not x2:
+        b = y2
+        a = (y1-b)/x1
+    else:
+        x_diff = x1/x2
+        b = (y1-x_diff*y2)/(1-x_diff)
+        a = (y1-b)/x1
+    return [a, b]
+
+
+def calc_Y(x, a, b):
+    x = float(x)
+    a = float(a)
+    b = float(b)
+    return a*x+b
 
 
 def l():

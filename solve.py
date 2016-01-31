@@ -4,31 +4,8 @@ __author__ = 'Damir'
 
 from itertools import imap
 from operator import itemgetter
-
+from helpers import get_A_B
 from avl_tree import AVLTree
-
-
-def get_A_B(x1, y1, x2, y2):
-
-    if x1 == x2:
-        return 'undf', 'undf'
-
-    x1 = float(x1)
-    x2 = float(x2)
-    y1 = float(y1)
-    y2 = float(y2)
-
-    if not x1:
-        b = y1
-        a = (y2-b)/x2
-    elif not x2:
-        b = y2
-        a = (y1-b)/x1
-    else:
-        x_diff = x1/x2
-        b = (y1-x_diff*y2)/(1-x_diff)
-        a = (y1-b)/x1
-    return a, b
 
 
 def calc_Y(x, a, b):

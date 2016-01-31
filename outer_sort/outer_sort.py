@@ -7,9 +7,10 @@ from itertools import imap
 
 
 def get_A_B(x1, y1, x2, y2):
-    """
-        Неточно все считает )))
-    """
+
+    if x1 == x2:
+        return 'undf', 'undf'
+
     x1 = float(x1)
     x2 = float(x2)
     y1 = float(y1)

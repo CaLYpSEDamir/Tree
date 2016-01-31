@@ -1,125 +1,45 @@
 # -*- coding: utf-8 -*-
 
-
 import os
 from itertools import imap
 from operator import itemgetter
 
-from copy import deepcopy
 from avl_tree import AVLTree
-from simple_helpers import (process_add_del, find_polygon, l)
+from helpers import (process_add_del, find_polygon, l, calc_Y)
 
-
-def get_A_B(x1, y1, x2, y2):
-
-    if x1 == x2:
-        return 'undf', 'undf'
-
-    x1 = float(x1)
-    x2 = float(x2)
-    y1 = float(y1)
-    y2 = float(y2)
-
-    if not x1:
-        b = y1
-        a = (y2-b)/x2
-    elif not x2:
-        b = y2
-        a = (y1-b)/x1
-    else:
-        x_diff = x1/x2
-        b = (y1-x_diff*y2)/(1-x_diff)
-        a = (y1-b)/x1
-    return a, b
-
-
-def calc_Y(x, a, b):
-    x = float(x)
-    a = float(a)
-    b = float(b)
-    return a*x+b
 
 ALL_XS = list()
-ALL_COORDINATES = list()
-SORTED_COORDINATES = list()
 
 # runs throughout ALL_XS
-stopped = 0
+# stopped = 0
 
 
-def coord_processing(pol_id, icoords):
-    """
-        записывает список координат вида
-        {'x1': , 'y1': , 'x2': , 'y2': , pol_id': , }
-    """
-    local_xs = set()
-
-    # Polygon has 3 coords in minimum
-    prev, next = icoords.next(), icoords.next()
-
-    while next:
-        p_x = float(prev[0])
-        p_y = float(prev[1])
-        n_x = float(next[0])
-        n_y = float(next[1])
-        if p_x < n_x:
-            c = {
-                'x1': p_x,
-                'y1': p_y,
-                'x2': n_x,
-                'y2': n_y,
-            }
-        elif p_x > n_x:
-            c = {
-                'x1': n_x,
-                'y1': n_y,
-                'x2': p_x,
-                'y2': p_y,
-            }
-        else:
-            print 'Warning, pol_id={0} has vertical line'.format(pol_id)
-            raise Exception()
-
-        c['a'], c['b'] = get_A_B(**c)
-        c['pol_id'] = pol_id
-
-        try:
-            prev = next
-            next = icoords.next()
-        except StopIteration:
-            next = None
-
-        ALL_COORDINATES.append(c)
-
-
-def get_coordinates():
-    """
-        из файла читаем строки
-    """
-    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'simple_coords2')
-
-    with open(file_path) as f:
-        for line in f.readlines():
-            if not line.startswith('#'):
-                pol_id, other_id, line_co = line.split(' ', 2)
-                icoords = imap(lambda x: x.split(), line_co.split(','))
-                coord_processing(pol_id, icoords)
-
-
-def sort_coordinates():
-    """
-        сортируем все координаты по х1
-        fixme needs outsort
-    """
-    global SORTED_COORDINATES
-    SORTED_COORDINATES = sorted(ALL_COORDINATES, key=itemgetter('x1'))
+# def get_coordinates():
+#     """
+#         из файла читаем строки
+#     """
+#     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'simple_coords2')
+#
+#     with open(file_path) as f:
+#         for line in f.readlines():
+#             if not line.startswith('#'):
+#                 pol_id, other_id, line_co = line.split(' ', 2)
+#                 icoords = imap(lambda x: x.split(), line_co.split(','))
+#                 coord_processing(pol_id, icoords)
 
 
 def set_first_to_xs():
     """
         Записываем первый x в список X-ов
     """
-    first = SORTED_COORDINATES[0]
+
+    with open(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), 'real_coords')):
+        pass
+
+
+    # first = SORTED_COORDINATES[0]
+    first = 1
     first_x = float(first['x1'])
     ALL_XS.append([first_x, None])
 
@@ -147,9 +67,9 @@ deletions = []
 
 
 def process_tree():
-    global stopped
 
-    curr = SORTED_COORDINATES[stopped]
+    # curr = SORTED_COORDINATES[stopped]
+    curr = 1
     curr_x = ALL_XS[-1][0]
 
     # если деревьев еще не было, то None
@@ -164,9 +84,9 @@ def process_tree():
 
     while n_x == curr_x:
         nodes.append(curr)
-        stopped += 1
+        stopped =0
         try:
-            curr = SORTED_COORDINATES[stopped]
+            # curr = SORTED_COORDINATES[stopped]
             n_x = float(curr['x1'])
         except IndexError:
             is_end = True
@@ -217,20 +137,24 @@ def process_tree():
 
 
 if __name__ == "__main__":
-    # # достаем коорды
-    # get_coordinates()
-    # # сортируем коорды
-    # sort_coordinates()
-    # set_first_to_xs()
-    # all_coords_len = len(SORTED_COORDINATES)
+
+    set_first_to_xs()
+
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'simple_coords2')
+
+    with open(file_path) as f:
+        print f.next()
+
+
+
 
     # пока не достигли конца строим деревья
-    next_x1 = process_tree()
-    print 'next_x1', next_x1
-    next_x1 = process_tree()
-    print 'next_x1', next_x1
-    # while next_x1 is not None:
-    next_x1 = process_tree()
+    # next_x1 = process_tree()
+    # print 'next_x1', next_x1
+    # next_x1 = process_tree()
+    # print 'next_x1', next_x1
+    # # while next_x1 is not None:
+    # next_x1 = process_tree()
 
     # print ALL_XS
     # second_tree = ALL_XS[1][1]
@@ -312,24 +236,24 @@ if __name__ == "__main__":
     # x = [5,3,10,2,4,8,11,1,6,9,12,6,7]  # 4
     # x = [5,2,10,1,4,8,11,3,6,9,12,6,7]  # 1
     # has r, has l
-    x = [2,1,3]  # 2
-    x = [4,2,5,1,3,6]  # 2
+    # x = [2,1,3]  # 2
+    # x = [4,2,5,1,3,6]  # 2
 
-    for i in x:
-        avl.add(avl.root, i)
-    l()
-    avl.show()
-
-    avl2 = AVLTree()
-
-    avl2.delete_versionly(avl, 2)
+    # for i in x:
+    #     avl.add(avl.root, i)
+    # l()
+    # avl.show()
+    #
+    # avl2 = AVLTree()
+    #
+    # avl2.delete_versionly(avl, 2)
 
     # avl2.add_versionly(avl, 12)
     # print avl2.get_node_versionly(avl, 1)
     # l()
     # avl.show()
-    l()
-    avl2.show()
-    import os
-    print os.path.dirname(__file__)
+    # l()
+    # avl2.show()
+    # import os
+    # print os.path.dirname(__file__)
     # print dir(__file__)
