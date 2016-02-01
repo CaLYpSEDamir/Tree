@@ -5,10 +5,11 @@ from itertools import imap
 from operator import itemgetter
 
 from avl_tree import AVLTree
-from helpers import (process_add_del, find_polygon, l, calc_Y)
+from helpers import (process_add_del, find_polygon, l, calc_Y, get_row_dict,
+                     )
 
 
-ALL_XS = list()
+ALL_XS = [[None, None], ]
 
 # runs throughout ALL_XS
 # stopped = 0
@@ -26,22 +27,6 @@ ALL_XS = list()
 #                 pol_id, other_id, line_co = line.split(' ', 2)
 #                 icoords = imap(lambda x: x.split(), line_co.split(','))
 #                 coord_processing(pol_id, icoords)
-
-
-def set_first_to_xs():
-    """
-        Записываем первый x в список X-ов
-    """
-
-    with open(os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), 'real_coords')):
-        pass
-
-
-    # first = SORTED_COORDINATES[0]
-    first = 1
-    first_x = float(first['x1'])
-    ALL_XS.append([first_x, None])
 
 
 def process_tree_nodes(nodes, x_middle, n_x):
@@ -66,90 +51,85 @@ def process_tree_nodes(nodes, x_middle, n_x):
 deletions = []
 
 
-def process_tree():
+def process_tree(row, main_file, prev_nodes):
 
-    # curr = SORTED_COORDINATES[stopped]
-    curr = 1
-    curr_x = ALL_XS[-1][0]
+    row_x = row['x1']
+    curr_float = float(row_x)
+    ALL_XS.append([row_x, None])
 
     # если деревьев еще не было, то None
-    try:
-        prev_tree = ALL_XS[-2][1]
-    except Exception:
-        prev_tree = None
+    prev_tree = ALL_XS[-2][1]
 
-    nodes = []
-    n_x = float(curr['x1'])
-    is_end = False
+    next_line = main_file.next()
+    next_row = get_row_dict(next_line)
+    next_float = float(next_row['x1'])
 
-    while n_x == curr_x:
-        nodes.append(curr)
-        stopped =0
+    nodes = [row, ]
+
+    while next_float == curr_float:
+        nodes.append(next_row)
         try:
-            # curr = SORTED_COORDINATES[stopped]
-            n_x = float(curr['x1'])
-        except IndexError:
-            is_end = True
-            # у последнего берем х2 для нахождения x_middle
-            n_x = curr['x2']
+            next_line = main_file.next()
+            next_row = get_row_dict(next_line)
+            next_float = float(next_row['x1'])
+        except StopIteration:
+            return None
 
-    if not nodes:
-        raise Exception('Nodes is empty, HOLE!')
-
-    x_middle = (n_x+curr_x)/2
-    global deletions
-    to_delete = deletions
-
-    # обрабатываем ноды будущего дерева
-    deletions, to_add = process_tree_nodes(nodes, x_middle, n_x)
-
-
-
-    if not prev_tree:
-        tree = AVLTree()
-        for n in to_add:
-            tree.add(tree.root, n['val'], n['a'], n['b'], n['pol_id'])
-        # tree.show()
-        ref_to_tree = tree
-    else:
-
-        next_tree = AVLTree()
-
-        print 'to_delete', to_delete
-        print 'to_add', to_add
-
-        process_add_del(to_delete, to_add, next_tree, prev_tree)
-
-        # обновляем все значения в нодах
-        next_tree.update_vals(next_tree.root, x_middle)
-        # обнуляем флаги updates
-        next_tree.remove_update_flags(next_tree.root)
-
-        # процесс перестраивания дерева
-        ref_to_tree = next_tree
-        # next_tree.show()
-
-    ALL_XS[-1][1] = ref_to_tree
-    # следующее значение Х
-    ALL_XS.append([n_x, None])
-
-    return n_x if not is_end else None
+    # if not nodes:
+    #     raise Exception('Nodes is empty, HOLE!')
+    #
+    # x_middle = (n_x+curr_x)/2
+    # global deletions
+    # to_delete = deletions
+    #
+    # # обрабатываем ноды будущего дерева
+    # deletions, to_add = process_tree_nodes(nodes, x_middle, n_x)
+    #
+    #
+    #
+    # if not prev_tree:
+    #     tree = AVLTree()
+    #     for n in to_add:
+    #         tree.add(tree.root, n['val'], n['a'], n['b'], n['pol_id'])
+    #     # tree.show()
+    #     ref_to_tree = tree
+    # else:
+    #
+    #     next_tree = AVLTree()
+    #
+    #     print 'to_delete', to_delete
+    #     print 'to_add', to_add
+    #
+    #     process_add_del(to_delete, to_add, next_tree, prev_tree)
+    #
+    #     # обновляем все значения в нодах
+    #     next_tree.update_vals(next_tree.root, x_middle)
+    #     # обнуляем флаги updates
+    #     next_tree.remove_update_flags(next_tree.root)
+    #
+    #     # процесс перестраивания дерева
+    #     ref_to_tree = next_tree
+    #     # next_tree.show()
+    #
+    # ALL_XS[-1][1] = ref_to_tree
+    # # следующее значение Х
+    # ALL_XS.append([n_x, None])
+    #
+    # return n_x if not is_end else None
 
 
 if __name__ == "__main__":
 
-    set_first_to_xs()
+    file_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 'outer_sort', 'cut')
 
-    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'simple_coords2')
+    with open(file_path) as main_file:
+        line = main_file.next()
+        row = get_row_dict(line)
 
-    with open(file_path) as f:
-        print f.next()
+        new_row = process_tree(row, main_file, [])
 
 
-
-
-    # пока не достигли конца строим деревья
-    # next_x1 = process_tree()
     # print 'next_x1', next_x1
     # next_x1 = process_tree()
     # print 'next_x1', next_x1
@@ -173,7 +153,7 @@ if __name__ == "__main__":
     # avl.show()
     # l()
 
-    avl = AVLTree()
+    # avl = AVLTree()
     # left rotate
     # x = [1,2,]  # 3
     # x = [5,1,7,6,8,]  # add 9 (avl2.ADD_versionly(avl, 9))

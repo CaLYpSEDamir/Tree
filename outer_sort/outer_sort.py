@@ -84,8 +84,8 @@ if platform.system() == 'Windows':
     # dma_file = 'c://python27/tree/EttonProducts/offline/dma.data'
     dma_file = 'c://python27/tree/EttonProducts/offline/dma-cut'
 else:
-    files_dir = '/home/damir/Projects/EttonProducts/offline/Files/{0}'
-    dma_file = '/home/damir/Projects/EttonProducts/offline/dma.data'
+    files_dir = '/home/damir/Projects/Tree/outer_sort/Files/{0}'
+    dma_file = '/home/damir/Projects/Tree/outer_sort/dma.data'
 
 
 with open(dma_file) as dma:  # 210 polygons, 9797 coordinates (8792)

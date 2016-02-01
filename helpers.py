@@ -44,9 +44,14 @@ def find_middle_x(x1, x2):
     return cut_midl + ":" + str(prec_f)
 
 
-print find_middle_x('123.0000000003123', '123.0000000004123')
+# print find_middle_x('123.0000000003123', '123.0000000004123')
 
 
+def get_row_dict(line):
+    keys = ['x1', 'y1', 'x2', 'y2', 'pol_id', 'a', 'b']
+    vals = line.split()
+    row = {k: v for (k, v) in zip(keys, vals)}
+    return row
 
 
 def get_A_B(x1, y1, x2, y2):
