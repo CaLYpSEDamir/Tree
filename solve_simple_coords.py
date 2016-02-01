@@ -5,11 +5,11 @@ from itertools import imap
 from operator import itemgetter
 
 from avl_tree import AVLTree
-from helpers import (process_add_del, find_polygon, l, calc_Y, get_row_dict,
+from helpers import (treatment_add_del, find_polygon, l, calc_Y, get_row_dict,
                      )
 
 
-ALL_XS = [[None, None], ]
+ALL_XS = [[-181, AVLTree()], ]
 
 # runs throughout ALL_XS
 # stopped = 0
@@ -51,29 +51,64 @@ def process_tree_nodes(nodes, x_middle, n_x):
 deletions = []
 
 
-def process_tree(row, main_file, prev_nodes):
+def process_tree(row, main_file, del_nodes):
 
+    # находим ноды для нового дерева
     row_x = row['x1']
-    curr_float = float(row_x)
-    ALL_XS.append([row_x, None])
+    row_float = float(row_x)
 
-    # если деревьев еще не было, то None
-    prev_tree = ALL_XS[-2][1]
+    try:
+        next_line = main_file.next()
+        next_row = get_row_dict(next_line)
+        next_float = float(next_row['x1'])
+    except StopIteration:
+            return None
 
-    next_line = main_file.next()
-    next_row = get_row_dict(next_line)
-    next_float = float(next_row['x1'])
+    add_nodes = [row, ]
 
-    nodes = [row, ]
-
-    while next_float == curr_float:
-        nodes.append(next_row)
+    while next_float == row_float:
+        add_nodes.append(next_row)
         try:
             next_line = main_file.next()
             next_row = get_row_dict(next_line)
             next_float = float(next_row['x1'])
         except StopIteration:
             return None
+
+    x_middle = (next_float + row_float) / 2
+    prev_tree = ALL_XS[-1][1]
+
+    # актуализируем все значения нодов в дереве
+    prev_tree.update_vals(x_middle)
+
+
+    treatment_add_del(del_nodes, add_nodes, x_middle, prev_tree.root.val)
+
+
+
+    ALL_XS.append([row_x, None])
+
+    # print 'prev_tree', prev_tree
+    # print 'nodes', map(lambda x: x['x1'], nodes)
+    # print 'nodes x2s', map(lambda x: float(x['x2']), nodes)
+    # print 'next_x1_float', next_float
+
+    # ноды будут удалены в след дереве
+    delete_for_next = [node for node in add_nodes if float(node['x2']) <= next_float]
+
+    # print 'to_delete', map(lambda x: x['x1'], to_delete)
+
+
+
+
+
+
+
+
+
+
+
+    return next_row
 
     # if not nodes:
     #     raise Exception('Nodes is empty, HOLE!')
@@ -128,6 +163,12 @@ if __name__ == "__main__":
         row = get_row_dict(line)
 
         new_row = process_tree(row, main_file, [])
+
+        # print new_row
+
+        while new_row is not None:
+            new_row = process_tree(new_row, main_file, [])
+            # print new_row
 
 
     # print 'next_x1', next_x1

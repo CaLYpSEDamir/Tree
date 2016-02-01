@@ -136,8 +136,8 @@ if __name__ == "__main__":
     # y = calc_Y(a,b,3)
     # print y
 
-    get_coordinates()
-    sort_coordinates()
+    # get_coordinates()
+    # sort_coordinates()
 
     # print 'Coordinates'
     # for c in ALL_COORDINATES:
@@ -148,5 +148,6 @@ if __name__ == "__main__":
     # for s in SORT_COORDINATES:
     #     print s['x1']
 
-    build_first_tree()
-    print 'stoppes', stopped
+    # build_first_tree()
+    # print 'stoppes', stopped
+

@@ -159,6 +159,26 @@ def process_add_del(to_del, to_add, next_tree, prev_tree):
         next_tree.delete(v)
 
 
+def treatment_add_del(del_nodes, add_nodes, x_middle, root_val):
+    # fixme too many for loops
+
+    for add in add_nodes:
+        add['val'] = calc_Y(x_middle, add['a'], add['b'])
+
+    to_replace = []
+
+    for dele in del_nodes:
+        for add in add_nodes:
+            if float(dele['x2']) == float(add['x1']):
+                to_replace.append((dele, add))
+                break
+        dele['val'] = calc_Y(x_middle, dele['a'], dele['b'])
+
+
+
+
+
+
 def find_polygon(root, came_x, came_y):
     less, more = None, None
     if root is None:

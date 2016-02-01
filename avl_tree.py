@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import math
-
+from helpers import calc_Y
 
 class Node(object):
 
@@ -28,15 +28,6 @@ class Node(object):
     def __str__(self):
         return '(tree={3}, val={0}, type={1}, w={2})'.format(
             self.val, self.type, self.w, self.tree_id)
-
-    def calc_new_val(self, x_m):
-        x_m = float(x_m)
-        a = float(self.a)
-        b = float(self.b)
-        return a*x_m+b
-
-    def set_new_val(self, x_m):
-        self.val = self.calc_new_val(x_m)
 
     def copy_node_attrs(self, orig_node, parent_to_copy, val, simple_copy=True):
         """
@@ -453,19 +444,20 @@ class AVLTree(object):
 
         return len(result)
 
-    @staticmethod
-    def update_vals(root, x_middle):
+    def update_vals(self, x_middle):
         """
-        неправильная реализация обновления значений всех нодов каждый раз
+        каждый раз в дереве обновляем значения, исходя из x_middle
         """
-        childs = [root, ]
-        while childs:
-            new_childs = []
-            for n in childs:
-                if n.pid1_filled:
-                    n.set_new_val(x_middle)
-                new_childs.extend([n.left, n.right])
-            childs = filter(None, new_childs)
+        if self.root.val is not None:
+            childs = [self.root, ]
+            while childs:
+                new_childs = []
+                for n in childs:
+                    # if n.pid1_filled:
+                    #     n.set_new_val(x_middle)
+                    n.val = calc_Y(x_middle, n.a, n.b)
+                    new_childs.extend([n.left, n.right])
+                childs = filter(None, new_childs)
 
     @staticmethod
     def remove_update_flags(root):
@@ -544,116 +536,6 @@ class AVLTree(object):
             new_li.append(getattr(el, 'right', None))
         if any(new_li):
             self.traversing(new_li, spaces)
-
-    # def create_node_branch(self, del_val, new_info, orig_tree):
-    #
-    #     copy_par = None
-    #
-    #     orig = orig_tree.root
-    #     copy = self.root
-    #     # exchanging
-    #     while orig:
-    #         if orig.val == del_val:
-    #             # дерево пусто
-    #             if not copy.new_in_v:
-    #                 copy.val = new_info['val']
-    #                 copy.a = new_info['a']
-    #                 copy.b = new_info['b']
-    #                 if not copy.pid1_filled:
-    #                     copy.pid1 = new_info['pol_id']
-    #                     copy.pid1_filled = True
-    #                 else:
-    #                     copy.pid2 = new_info['pol_id']
-    #                 copy.new_in_v = True
-    #
-    #             copy.left = orig.left
-    #             copy.right = orig.right
-    #             copy.type = orig.type
-    #             copy.w = orig.w
-    #             if copy_par:
-    #                 if copy.type == 'l':
-    #                     copy_par.left = copy
-    #                 else:
-    #                     copy_par.right = copy
-    #
-    #             copy.parent = copy_par
-    #             break
-    #         else:
-    #             # у нового дерева ноды пустые перед заменой
-    #             if not copy.val:
-    #                 copy.val = orig.val
-    #                 copy.a = orig.a
-    #                 copy.b = orig.b
-    #                 copy.pid1 = orig.pid1
-    #                 copy.pid2 = orig.pid2
-    #                 copy.new_in_v = True
-    #                 copy.pid2 = new_info['pol_id']
-    #
-    #                 copy.parent = copy_par
-    #                 copy.left = orig.left
-    #                 copy.right = orig.right
-    #                 copy.type = orig.type
-    #                 copy.w = orig.w
-    #
-    #             if copy_par:
-    #                 if copy.type == 'l':
-    #                     copy_par.left = copy
-    #                 else:
-    #                     copy_par.right = copy
-    #
-    #             copy_par = copy
-    #             orig, copy = (orig.left, copy.left) if orig.val > del_val else (orig.right, copy.right)
-    #
-    # def REPLACE_create_node_branch(
-    #         self, orig_tree, del_val, add_val):
-    #
-    #     copy_par = None
-    #
-    #     orig = orig_tree.root
-    #     copy = self.root
-    #
-    #     # exchanging
-    #     # идем от корня, и пока есть дети
-    #     # обрабатываем и идем дальше
-    #     while orig:
-    #         if orig.val == del_val:
-    #             copy.val = add_val
-    #             copy.left = orig.left
-    #             copy.right = orig.right
-    #             copy.type = orig.type
-    #             copy.w = orig.w
-    #             copy.tree_id = id(self)
-    #             copy.new_in_v = True
-    #             if copy_par:
-    #                 if orig.type == 'l':
-    #                     copy_par.left = copy
-    #                 else:
-    #                     copy_par.right = copy
-    #
-    #             copy.parent = copy_par
-    #             break
-    #         else:
-    #             # у нового дерева ноды пустые перед заменой
-    #             if not copy.val:
-    #                 copy.val = orig.val
-    #                 copy.parent = copy_par
-    #                 copy.left = orig.left
-    #                 copy.right = orig.right
-    #                 copy.type = orig.type
-    #                 copy.w = orig.w
-    #                 copy.tree_id = id(self)
-    #                 copy.new_in_v = True
-    #
-    #             if copy_par:
-    #                 if copy.type == 'l':
-    #                     copy_par.left = copy
-    #                 else:
-    #                     copy_par.right = copy
-    #
-    #             copy_par = copy
-    #             orig, copy = (
-    #                 (orig.left, Node()) if orig.val > del_val
-    #                     else (orig.right, Node()))
 
     def show(self):
         count = self.get_nodes_count(self.root)
