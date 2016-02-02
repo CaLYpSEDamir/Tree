@@ -51,7 +51,7 @@ def process_tree_nodes(nodes, x_middle, n_x):
 deletions = []
 
 
-def process_tree(row, main_file, del_nodes):
+def process_tree(row, main_file, err_del_nodes, del_nodes):
 
     # находим ноды для нового дерева
     row_x = row['x1']
@@ -77,12 +77,30 @@ def process_tree(row, main_file, del_nodes):
 
     x_middle = (next_float + row_float) / 2
     prev_tree = ALL_XS[-1][1]
+    prev_tree = AVLTree()
+
+    next_tree = AVLTree()
+
+    # удаляем ноды битые, у которых х2 меньше, чем следующий х1
+    for err_d in err_del_nodes:
+        next_tree.delete_versionly(prev_tree, err_d['val'])
+
+    err_del_nodes = [node for node in add_nodes if float(node['x2']) < next_float]
+    if err_del_nodes:
+        print 'Err_del_nodes exists', err_del_nodes
+
+    # обработка нодов на добавление/удаление
+    to_replace, proc_add, proc_del = treatment_add_del(del_nodes, add_nodes)
+
+    for (d, a) in to_replace:
+        next_tree.replace_versionly(prev_tree, d, a)
+
+
 
     # актуализируем все значения нодов в дереве
-    prev_tree.update_vals(x_middle)
+    # prev_tree.update_vals(x_middle)
 
 
-    treatment_add_del(del_nodes, add_nodes, x_middle, prev_tree.root.val)
 
 
 
@@ -94,7 +112,7 @@ def process_tree(row, main_file, del_nodes):
     # print 'next_x1_float', next_float
 
     # ноды будут удалены в след дереве
-    delete_for_next = [node for node in add_nodes if float(node['x2']) <= next_float]
+    # delete_for_next = [node for node in add_nodes if float(node['x2']) <= next_float]
 
     # print 'to_delete', map(lambda x: x['x1'], to_delete)
 

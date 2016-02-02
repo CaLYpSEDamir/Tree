@@ -99,37 +99,27 @@ def replace_node_val(next_tree, del_val, new_info):
         node.pid2 = new_info['pol_id']
 
 
-# def create_node_branch(next_tree, del_val, new_info, prev_tree):
-#     next_tree.create_node_branch(del_val, new_info, prev_tree)
-
-
-def process_add_del(to_del, to_add, next_tree, prev_tree):
+def treatment_add_del(del_nodes, add_nodes):
 
     # del/add pairs
     pairs = []
-
     del_dict = {}
     add_dict = {}
 
-    for k, gr in groupby(sorted(to_del, key=itemgetter('val')), lambda x: x['y2']):
+    for k, gr in groupby(sorted(del_nodes, key=itemgetter('val')), lambda x: x['y2']):
         del_dict[k] = list(gr)
 
-    for k, gr in groupby(sorted(to_add, key=itemgetter('val')), lambda x: x['y1']):
+    for k, gr in groupby(sorted(add_nodes, key=itemgetter('val')), lambda x: x['y1']):
         add_dict[k] = list(gr)
-
-    print 'del_dict', del_dict
-    print 'add_dict', add_dict
 
     for k in del_dict:
         pairs.append((del_dict[k], add_dict.get(k, [])))
-
-        # add_dict.pop(k, None)
+        add_dict.pop(k, None)
 
     # finals
     f_del = []  # deletions without pair to replace
     f_add = []  # addition without pair to replace
-
-    print 'pairs', pairs
+    f_replace = []
 
     for pair in pairs:
         d, a = pair
@@ -138,45 +128,47 @@ def process_add_del(to_del, to_add, next_tree, prev_tree):
             # пара (на удаление, на добавление вместо удаленного)
             i_d, i_a = i_pair
             if i_d and i_a:
-                # replace_node_val(next_tree, first['val'], second)
-                # create_node_branch(next_tree, i_d['val'], i_a, prev_tree)
-                print prev_tree
-                prev_tree.show()
-                print next_tree
-                next_tree.show()
+                f_replace.append((i_d, i_a))
             else:
                 f_del.append(i_d) if i_d else f_add.append(i_a)
 
-    print 80*'-'
-    print 'deletions without pair to replace'
-    print f_del
-    print 'addition without pair to replace'
-    print f_add
+    return f_replace, f_del, f_add
 
-    # удаляем сразу по 2 значения
-    for v, gr in groupby(f_del, lambda x: x['val']):
-        # pol_ids = [g['pol_id'] for g in gr]
-        next_tree.delete(v)
+    # print 'del_dict', del_dict
+    # print 'add_dict', add_dict
+    # print 'pairs', pairs
+    # print 80*'-'
+    # print 'deletions without pair to replace'
+    # print f_del
+    # print 'addition without pair to replace'
+    # print f_add
+    # print 'to_replace'
+    # print to_replace
 
-
-def treatment_add_del(del_nodes, add_nodes, x_middle, root_val):
-    # fixme too many for loops
-
-    for add in add_nodes:
-        add['val'] = calc_Y(x_middle, add['a'], add['b'])
-
-    to_replace = []
-
-    for dele in del_nodes:
-        for add in add_nodes:
-            if float(dele['x2']) == float(add['x1']):
-                to_replace.append((dele, add))
-                break
-        dele['val'] = calc_Y(x_middle, dele['a'], dele['b'])
+    # # удаляем сразу по 2 значения
+    # for v, gr in groupby(f_del, lambda x: x['val']):
+    #     # pol_ids = [g['pol_id'] for g in gr]
+    #     next_tree.delete(v)
 
 
-
-
+# def treatment_add_del2(del_nodes, add_nodes, x_middle):
+#     # у del_nodes ['val'] равны значениям старого дерева,
+#     # сосчитанные, x_middle старого дерева
+#
+#     for add in add_nodes:
+#         add['val'] = calc_Y(x_middle, add['a'], add['b'])
+#
+#     to_replace = []
+#
+#     # del_nodes.sort(key=itemgetter('val'))
+#     # add_nodes.sort(key=itemgetter('val'))
+#
+#     for dele in del_nodes:
+#         for add in add_nodes:
+#             if float(dele['y2']) == float(add['y1']):
+#                 to_replace.append((dele, add))
+#
+#         dele['val'] = calc_Y(x_middle, dele['a'], dele['b'])
 
 
 def find_polygon(root, came_x, came_y):
@@ -208,3 +200,20 @@ def find_polygon(root, came_x, came_y):
     else:
         print 'Out of territory'
         return None
+
+
+add_nodes = [
+    {'x1': 1, 'y1': 7, 'x2':2, 'y2': 9, 'val': 8, },
+    {'x1': 1, 'y1': 7, 'x2':2, 'y2': 7, 'val': 7, },
+    {'x1': 1, 'y1': 7, 'x2':2, 'y2': 5, 'val': 6, },
+    {'x1': 1, 'y1': 2, 'x2':2, 'y2': 2, 'val': 2, },
+]
+
+del_nodes = [
+    {'x1': 0, 'y1': 0, 'x2': 1, 'y2': 2,'val': 1, },
+    {'x1': 0, 'y1': 4, 'x2': 1, 'y2': 2,'val': 3, },
+    {'x1': 0, 'y1': 5, 'x2': 1, 'y2': 7,'val': 6, },
+    {'x1': 0, 'y1': 9, 'x2': 1, 'y2': 7,'val': 8, },
+]
+
+# treatment_add_del(del_nodes, add_nodes)

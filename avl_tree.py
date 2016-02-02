@@ -3,6 +3,7 @@
 import math
 from helpers import calc_Y
 
+
 class Node(object):
 
     def __init__(self, val=None, type=None, parent=None,
