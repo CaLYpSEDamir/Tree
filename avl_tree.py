@@ -30,7 +30,8 @@ class Node(object):
         return '(tree={3}, val={0}, type={1}, w={2})'.format(
             self.val, self.type, self.w, self.tree_id)
 
-    def copy_node_attrs(self, orig_node, parent_to_copy, val, simple_copy=True):
+    def copy_node_attrs(self, orig_node, parent_to_copy,
+                        new_info=None, simple_copy=True):
         """
             делает копию ноды при добавлении/замене значения в новое дерево
         """
@@ -125,6 +126,56 @@ class AVLTree(object):
         # значит копи-дерево пусто и будем работать с ориг-деревом
         if copy.val is None:
             # вроде такого быть не должно, чтобы оба дерева были пусты
+            if orig.val is None:
+                raise Exception("Something went wrong! Tree is empty!")
+            # копируем корень ориг дерева
+            copy.copy_node_attrs(orig, None, orig.val)
+            copy.tree_id = 'New'#str(id(self))+' N'
+
+        # fixme со ссылками на parent проблемы
+        if copy.val == val:
+            print 'Value {0} is already in Tree root!'.format(str(val))
+            return
+
+        # идем вниз, копируя,
+        # fixme не обработано, если значение уже есть, то pol_id2 сувать
+        child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
+
+        while child:
+            # уже иммеется значение в дереве
+            if child.val == val:
+                print 'Value {0} is already in Tree!'.format(str(val))
+                break
+            # создание копии ноды
+            if not child.new_in_v:
+                new_node = Node()
+                new_node.copy_node_attrs(child, copy, child.val)
+                new_node.tree_id = 'New'# str(id(self))+' N'
+                copy = new_node
+            else:
+                copy = child
+            child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
+        else:
+            new_node = Node(val=val, type=side, parent=copy, tree_id='New')#str(id(self))+' N')
+            new_node.new_in_v = True
+            new_node.tree_id = 'New'#str(id(self))+' N'
+            if side == 'l':
+                copy.left = new_node
+                copy.w -= 1
+            else:
+                copy.right = new_node
+                copy.w += 1
+            self.change_w_and_check_versionly(copy)
+
+    # добавление нодов в версионное дерево
+    def replace_versionly(self, orig_tree, val, new_info):
+
+        orig = orig_tree.root
+        copy = self.root
+
+        # значит копи-дерево пусто и будем работать с ориг-деревом
+        if copy.val is None:
+            # такого быть не должно,чтобы на реплэйсе оба дерева были пусты
             if orig.val is None:
                 raise Exception("Something went wrong! Tree is empty!")
             # копируем корень ориг дерева

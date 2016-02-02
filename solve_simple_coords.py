@@ -93,7 +93,7 @@ def process_tree(row, main_file, err_del_nodes, del_nodes):
     to_replace, proc_add, proc_del = treatment_add_del(del_nodes, add_nodes)
 
     for (d, a) in to_replace:
-        next_tree.replace_versionly(prev_tree, d, a)
+        next_tree.replace_versionly(prev_tree, d['val'], a)
 
 
 
