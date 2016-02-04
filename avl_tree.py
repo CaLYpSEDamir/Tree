@@ -7,7 +7,7 @@ from helpers import calc_Y
 class Node(object):
 
     def __init__(self, val=None, type=None, parent=None,
-                 a=None, b=None, pid1=None, pid2=None, tree_id=None):
+                 a=None, b=None, pid=None, tree_id=None):
         self.val = val
         self.w = 0
         self.left = None
@@ -15,8 +15,12 @@ class Node(object):
         self.parent = parent
         self.type = type
 
-        self.pid1 = pid1
-        self.pid2 = pid2
+        # fixme может лучше список pids
+        # self.pid1 = pid1
+        # self.pid2 = pid2
+        self.pids = []
+        if pid:
+            self.pids.append(pid)
         self.a = a
         self.b = b
         # при замене флаг
@@ -31,25 +35,25 @@ class Node(object):
             self.val, self.type, self.w, self.tree_id)
 
     def copy_node_attrs(self, orig_node, parent_to_copy,
-                        new_info=None, simple_copy=True):
+                        a=None, b=None, not_rotate=True):
         """
             делает копию ноды при добавлении/замене значения в новое дерево
         """
-        self.val = val
+        self.val = orig_node.val
         self.left = orig_node.left
         self.right = orig_node.right
         self.type = orig_node.type
         self.w = orig_node.w
         self.new_in_v = True
-        self.a = orig_node.a
-        self.b = orig_node.b
+        self.a = orig_node.a if a is None else a
+        self.b = orig_node.b if b is not None else b
 
         self.parent = parent_to_copy
 
         # при простом добаление, типы должны копироваться тоже,
         # но при ротации этого не надо!
         # parent_to_copy может быть None
-        if simple_copy and parent_to_copy:
+        if not_rotate and parent_to_copy:
             if orig_node.type == 'l':
                 parent_to_copy.left = self
             else:
@@ -62,7 +66,7 @@ class Node(object):
             raise Exception('Version of node is old!')
 
         new_node = Node()
-        new_node.copy_node_attrs(node, parent, node.val)
+        new_node.copy_node_attrs(node, parent)
         new_node.tree_id = 'New'
 
         return new_node
@@ -91,18 +95,18 @@ class AVLTree(object):
             root.a = a
             root.b = b
             root.pid1 = pol_id
-            root.tree_id = 'Old'#str(id(self))+' O'
+            root.tree_id = str(id(self))+' O'
         else:
             if val < r_v:
                 if not root.left:
-                    root.left = Node(val, 'l', root, a, b, pid1=pol_id, tree_id='Old')#str(id(self))+' O')
+                    root.left = Node(val, 'l', root, a, b, pid=pol_id, tree_id=str(id(self))+' O')
                     root.w -= 1
                     self.change_w_and_check(root)
                 else:
                     self.add(root.left, val, a, b, pol_id)
             elif r_v < val:
                 if not root.right:
-                    root.right = Node(val, 'r', root, a, b, pid1=pol_id, tree_id='Old')#str(id(self))+' O')
+                    root.right = Node(val, 'r', root, a, b, pid=pol_id, tree_id=str(id(self))+' O')
                     root.w += 1
                     self.change_w_and_check(root)
                 else:
@@ -129,8 +133,8 @@ class AVLTree(object):
             if orig.val is None:
                 raise Exception("Something went wrong! Tree is empty!")
             # копируем корень ориг дерева
-            copy.copy_node_attrs(orig, None, orig.val)
-            copy.tree_id = 'New'#str(id(self))+' N'
+            copy.copy_node_attrs(orig, None)
+            copy.tree_id = str(id(self))+' N'
 
         # fixme со ссылками на parent проблемы
         if copy.val == val:
@@ -149,8 +153,8 @@ class AVLTree(object):
             # создание копии ноды
             if not child.new_in_v:
                 new_node = Node()
-                new_node.copy_node_attrs(child, copy, child.val)
-                new_node.tree_id = 'New'# str(id(self))+' N'
+                new_node.copy_node_attrs(child, copy)
+                new_node.tree_id = str(id(self))+' N'
                 copy = new_node
             else:
                 copy = child
@@ -158,7 +162,7 @@ class AVLTree(object):
         else:
             new_node = Node(val=val, type=side, parent=copy, tree_id='New')#str(id(self))+' N')
             new_node.new_in_v = True
-            new_node.tree_id = 'New'#str(id(self))+' N'
+            new_node.tree_id = str(id(self))+' N'
             if side == 'l':
                 copy.left = new_node
                 copy.w -= 1
@@ -169,7 +173,7 @@ class AVLTree(object):
 
     # добавление нодов в версионное дерево
     def replace_versionly(self, orig_tree, val, new_info):
-
+        # fixme со ссылками на parent проблемы
         orig = orig_tree.root
         copy = self.root
 
@@ -179,43 +183,36 @@ class AVLTree(object):
             if orig.val is None:
                 raise Exception("Something went wrong! Tree is empty!")
             # копируем корень ориг дерева
-            copy.copy_node_attrs(orig, None, orig.val)
-            copy.tree_id = 'New'#str(id(self))+' N'
-
-        # fixme со ссылками на parent проблемы
+            copy.copy_node_attrs(orig, None)
+            copy.tree_id = str(id(self))+' N'
+        # корень copy уже есть копия
         if copy.val == val:
-            print 'Value {0} is already in Tree root!'.format(str(val))
+            copy.a = new_info['a']
+            copy.b = new_info['b']
+            copy.pids.append(new_info['pid'])
             return
 
         # идем вниз, копируя,
         # fixme не обработано, если значение уже есть, то pol_id2 сувать
-        child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
+        child = copy.left if copy.val > val else copy.right
 
         while child:
-            # уже иммеется значение в дереве
-            if child.val == val:
-                print 'Value {0} is already in Tree!'.format(str(val))
-                break
-            # создание копии ноды
             if not child.new_in_v:
                 new_node = Node()
-                new_node.copy_node_attrs(child, copy, child.val)
-                new_node.tree_id = 'New'# str(id(self))+' N'
+                new_node.copy_node_attrs(child, copy)
+                new_node.tree_id = str(id(self))+' N'
                 copy = new_node
             else:
                 copy = child
-            child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
-        else:
-            new_node = Node(val=val, type=side, parent=copy, tree_id='New')#str(id(self))+' N')
-            new_node.new_in_v = True
-            new_node.tree_id = 'New'#str(id(self))+' N'
-            if side == 'l':
-                copy.left = new_node
-                copy.w -= 1
-            else:
-                copy.right = new_node
-                copy.w += 1
-            self.change_w_and_check_versionly(copy)
+
+            # нашли значение в дереве
+            if child.val == val:
+                # создание копии ноды
+                copy.a = new_info['a']
+                copy.b = new_info['b']
+                copy.pids.append(new_info['pid'])
+                break
+            child = copy.left if copy.val > val else copy.right
 
     def change_w_and_check_versionly(self, node):
 
@@ -394,8 +391,8 @@ class AVLTree(object):
         else:
             new_node = Node()
             new_node.copy_node_attrs(
-                node_left, parent, node_left.val, simple_copy=False)
-            new_node.tree_id = 'New'#str(id(self))+' N'
+                node_left, parent, not_rotate=False)
+            new_node.tree_id = str(id(self))+' N'
             new_node.type = 'r'
             parent.right = new_node
 
@@ -451,8 +448,8 @@ class AVLTree(object):
         else:
             new_node = Node()
             new_node.copy_node_attrs(
-                node_right, parent, node_right.val, simple_copy=False)
-            new_node.tree_id = 'New'#str(id(self))+' N'
+                node_right, parent, not_rotate=False)
+            new_node.tree_id = str(id(self))+' N'
             new_node.type = 'l'
             parent.left = new_node
 
@@ -566,8 +563,8 @@ class AVLTree(object):
         gen = (((y-8 if j else y)*' '+str(getattr(x_, 'val', None) or 'N') +
                 '('+str(getattr(x_, 'w', 'N'))+')' +
                 '('+str(getattr(x_, 'type', None) or 'N')+')'
-                # +'('+str(getattr(x_, 'a', 'N'))+')'
-                # +'('+str(getattr(x_, 'b', 'N'))+')'
+                +'('+str(getattr(x_, 'a', 'N'))+')'
+                +'('+str(getattr(x_, 'b', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid1', 'N'))+')'
                 # +'('+str(getattr(x_, 'pid2', 'N'))+')'
                 +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
@@ -937,8 +934,8 @@ class AVLTree(object):
                 raise Exception("Something went wrong! Tree is empty!")
 
             # копируем корень ориг дерева
-            copy.copy_node_attrs(orig, None, orig.val)
-            copy.tree_id = 'New'#str(id(self))+' N'
+            copy.copy_node_attrs(orig, None)
+            copy.tree_id = str(id(self))+' N'
 
         if copy.val == val:
             return copy
@@ -951,8 +948,8 @@ class AVLTree(object):
             # создание копии ноды
             if not child.new_in_v:
                 new_node = Node()
-                new_node.copy_node_attrs(child, copy, child.val)
-                new_node.tree_id = 'New'# str(id(self))+' N'
+                new_node.copy_node_attrs(child, copy)
+                new_node.tree_id = str(id(self))+' N'
                 copy = new_node
             else:
                 copy = child
@@ -960,8 +957,8 @@ class AVLTree(object):
         else:
             if not child.new_in_v:
                 new_node = Node()
-                new_node.copy_node_attrs(child, copy, child.val)
-                new_node.tree_id = 'New'# str(id(self))+' N'
+                new_node.copy_node_attrs(child, copy)
+                new_node.tree_id = str(id(self))+' N'
 
                 return new_node
             else:

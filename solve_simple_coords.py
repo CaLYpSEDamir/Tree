@@ -118,14 +118,6 @@ def process_tree(row, main_file, err_del_nodes, del_nodes):
 
 
 
-
-
-
-
-
-
-
-
     return next_row
 
     # if not nodes:
@@ -171,7 +163,7 @@ def process_tree(row, main_file, err_del_nodes, del_nodes):
     # return n_x if not is_end else None
 
 
-if __name__ == "__main__":
+if __name__ == "__main__1":
 
     file_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 'outer_sort', 'cut')
@@ -188,6 +180,7 @@ if __name__ == "__main__":
             new_row = process_tree(new_row, main_file, [])
             # print new_row
 
+if __name__ == "__main__":
 
     # print 'next_x1', next_x1
     # next_x1 = process_tree()
@@ -204,10 +197,15 @@ if __name__ == "__main__":
 
     # l()
     #
-    # avl = AVLTree([4, 3, 5, 2])
-    # avl.show()
-    # l()
-    #
+    avl = AVLTree([3,2,4,1,5])
+    avl.show()
+    l()
+    avl2 = AVLTree()
+    avl2.replace_versionly(avl, 1, {'a': 'a1', 'b': 'b1', 'pid': 'pid'})
+    # avl2.show()
+    print avl2.root.left.left.pids
+
+
     # avl.add(avl.root, 1)
     # avl.show()
     # l()
