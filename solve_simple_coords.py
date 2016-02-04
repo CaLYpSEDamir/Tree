@@ -92,10 +92,11 @@ def process_tree(row, main_file, err_del_nodes, del_nodes):
     # обработка нодов на добавление/удаление
     to_replace, proc_add, proc_del = treatment_add_del(del_nodes, add_nodes)
 
-    for (d, a) in to_replace:
-        next_tree.replace_versionly(prev_tree, d['val'], a)
+    # for (d, a) in to_replace:
+    #     next_tree.replace_versionly(prev_tree, d['val'], a)
 
-
+    for d in proc_del:
+        next_tree.delete_versionly(prev_tree, d['val'])
 
     # актуализируем все значения нодов в дереве
     # prev_tree.update_vals(x_middle)
@@ -105,7 +106,6 @@ def process_tree(row, main_file, err_del_nodes, del_nodes):
 
 
     ALL_XS.append([row_x, None])
-
     # print 'prev_tree', prev_tree
     # print 'nodes', map(lambda x: x['x1'], nodes)
     # print 'nodes x2s', map(lambda x: float(x['x2']), nodes)
@@ -113,10 +113,7 @@ def process_tree(row, main_file, err_del_nodes, del_nodes):
 
     # ноды будут удалены в след дереве
     # delete_for_next = [node for node in add_nodes if float(node['x2']) <= next_float]
-
     # print 'to_delete', map(lambda x: x['x1'], to_delete)
-
-
 
     return next_row
 
@@ -163,7 +160,7 @@ def process_tree(row, main_file, err_del_nodes, del_nodes):
     # return n_x if not is_end else None
 
 
-if __name__ == "__main__1":
+if __name__ == "__main__":
 
     file_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 'outer_sort', 'cut')
@@ -172,15 +169,14 @@ if __name__ == "__main__1":
         line = main_file.next()
         row = get_row_dict(line)
 
-        new_row = process_tree(row, main_file, [])
+        new_row = process_tree(row, main_file, [], [])
 
         # print new_row
 
         while new_row is not None:
-            new_row = process_tree(new_row, main_file, [])
+            new_row = process_tree(new_row, main_file, [], [])
             # print new_row
 
-if __name__ == "__main__":
 
     # print 'next_x1', next_x1
     # next_x1 = process_tree()
