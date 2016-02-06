@@ -15,16 +15,11 @@ class Node(object):
         self.parent = parent
         self.type = type
 
-        # fixme может лучше список pids
-        # self.pid1 = pid1
-        # self.pid2 = pid2
         self.pids = []
         if pid:
             self.pids.append(pid)
         self.a = a
         self.b = b
-        # при замене флаг
-        self.pid1_filled = False
         # при построении версий, new in new version
         self.new_in_v = False
         # временно
@@ -35,11 +30,12 @@ class Node(object):
             self.val, self.type, self.w, self.tree_id)
 
     def copy_node_attrs(self, orig_node, parent_to_copy,
+                        val=None, pid=None,
                         a=None, b=None, not_rotate=True):
         """
             делает копию ноды при добавлении/замене значения в новое дерево
         """
-        self.val = orig_node.val
+        self.val = orig_node.val if val is None else val
         self.left = orig_node.left
         self.right = orig_node.right
         self.type = orig_node.type
@@ -47,6 +43,8 @@ class Node(object):
         self.new_in_v = True
         self.a = orig_node.a if a is None else a
         self.b = orig_node.b if b is not None else b
+
+        self.pids = [x for x in orig_node.pids]
 
         self.parent = parent_to_copy
 
@@ -94,7 +92,7 @@ class AVLTree(object):
             root.val = val
             root.a = a
             root.b = b
-            root.pid1 = pol_id
+            root.pids.append(pol_id)
             root.tree_id = str(id(self))+' O'
         else:
             if val < r_v:
@@ -113,32 +111,32 @@ class AVLTree(object):
                     self.add(root.right, val, a, b, pol_id)
             else:
                 # добавляем второй id полигона
-                root.pid2 = pol_id
+                root.pids.append(pol_id)
 
     # добавление нодов в версионное дерево
-    def add_versionly(self, orig_tree, val):
+    def add_versionly(self, orig_tree, new_node_info):
         """
         Во всех add/del/replace функциях, если self.root.val is None,
         а значит пустое дерево, то копируем с ориг дерева!
         иначе работаем только с копи-деревом
         """
-        # FIXME хватит копировать вначале только корень
+        val = new_node_info['val']
+        a = new_node_info['a']
+        b = new_node_info['b']
+        pid = new_node_info['pol_id']
 
         orig = orig_tree.root
         copy = self.root
 
         # значит копи-дерево пусто и будем работать с ориг-деревом
         if copy.val is None:
-            # вроде такого быть не должно, чтобы оба дерева были пусты
-            if orig.val is None:
-                raise Exception("Something went wrong! Tree is empty!")
             # копируем корень ориг дерева
             copy.copy_node_attrs(orig, None)
             copy.tree_id = str(id(self))+' N'
 
         # fixme со ссылками на parent проблемы
         if copy.val == val:
-            print 'Value {0} is already in Tree root!'.format(str(val))
+            copy.pids.append(pid)
             return
 
         # идем вниз, копируя,
@@ -148,8 +146,8 @@ class AVLTree(object):
         while child:
             # уже иммеется значение в дереве
             if child.val == val:
-                print 'Value {0} is already in Tree!'.format(str(val))
-                break
+                child.pids.append(pid)
+                return
             # создание копии ноды
             if not child.new_in_v:
                 new_node = Node()
@@ -160,7 +158,9 @@ class AVLTree(object):
                 copy = child
             child, side = (copy.left, 'l') if copy.val > val else (copy.right, 'r')
         else:
-            new_node = Node(val=val, type=side, parent=copy, tree_id='New')#str(id(self))+' N')
+            new_node = Node(val=val, type=side, parent=copy,
+                            a=a, b=b, pid=pid,
+                            tree_id=str(id(self))+' N')
             new_node.new_in_v = True
             new_node.tree_id = str(id(self))+' N'
             if side == 'l':
@@ -170,6 +170,9 @@ class AVLTree(object):
                 copy.right = new_node
                 copy.w += 1
             self.change_w_and_check_versionly(copy)
+
+    def check_next_tree(self, prev_tree, x_middle):
+        pass
 
     # добавление нодов в версионное дерево
     def replace_versionly(self, orig_tree, val, new_info):
@@ -502,8 +505,6 @@ class AVLTree(object):
             while childs:
                 new_childs = []
                 for n in childs:
-                    # if n.pid1_filled:
-                    #     n.set_new_val(x_middle)
                     n.val = calc_Y(x_middle, n.a, n.b)
                     new_childs.extend([n.left, n.right])
                 childs = filter(None, new_childs)
@@ -514,7 +515,6 @@ class AVLTree(object):
         while childs:
             new_childs = []
             for n in childs:
-                n.pid1_filled = False
                 new_childs.extend([n.left, n.right])
             childs = filter(None, new_childs)
 
@@ -565,8 +565,6 @@ class AVLTree(object):
                 '('+str(getattr(x_, 'type', None) or 'N')+')'
                 +'('+str(getattr(x_, 'a', 'N'))+')'
                 +'('+str(getattr(x_, 'b', 'N'))+')'
-                # +'('+str(getattr(x_, 'pid1', 'N'))+')'
-                # +'('+str(getattr(x_, 'pid2', 'N'))+')'
                 +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
                 +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
                 +('(N)' if x_ is None else

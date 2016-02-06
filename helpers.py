@@ -84,6 +84,11 @@ def calc_Y(x, a, b):
     return a*x+b
 
 
+def update_dict_vals(proc_add, x_middle):
+    for add in proc_add:
+        add['val'] = calc_Y(x_middle, add['a'], add['b'])
+
+
 def l():
     print 80*'-'+'\n\n\n'
 
@@ -106,10 +111,10 @@ def treatment_add_del(del_nodes, add_nodes):
     del_dict = {}
     add_dict = {}
 
-    for k, gr in groupby(sorted(del_nodes, key=itemgetter('val')), lambda x: x['y2']):
+    for k, gr in groupby(del_nodes, lambda x: x['y2']):
         del_dict[k] = list(gr)
 
-    for k, gr in groupby(sorted(add_nodes, key=itemgetter('val')), lambda x: x['y1']):
+    for k, gr in groupby(add_nodes, lambda x: x['y1']):
         add_dict[k] = list(gr)
 
     for k in del_dict:
@@ -120,7 +125,7 @@ def treatment_add_del(del_nodes, add_nodes):
     f_del = []  # deletions without pair to replace
     f_add = []  # addition without pair to replace
     f_replace = []
-
+    print 'pairs', pairs
     for pair in pairs:
         d, a = pair
 
@@ -131,6 +136,11 @@ def treatment_add_del(del_nodes, add_nodes):
                 f_replace.append((i_d, i_a))
             else:
                 f_del.append(i_d) if i_d else f_add.append(i_a)
+
+    # если начало новых не совпало с концами удаления
+    print 'add_dict', add_dict
+    for k, v in add_dict.iteritems():
+        f_add.extend(v)
 
     return f_replace, f_del, f_add
 

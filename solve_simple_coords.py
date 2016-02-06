@@ -6,7 +6,7 @@ from operator import itemgetter
 
 from avl_tree import AVLTree
 from helpers import (treatment_add_del, find_polygon, l, calc_Y, get_row_dict,
-                     )
+                     update_dict_vals)
 
 
 ALL_XS = [[-181, AVLTree()], ]
@@ -51,18 +51,20 @@ def process_tree_nodes(nodes, x_middle, n_x):
 deletions = []
 
 
-def process_tree(row, main_file, err_del_nodes, del_nodes):
+def process_tree(row, main_file, err_del_nodes_old, del_nodes_old):
+
+    print 'err_del_nodes_old', err_del_nodes_old
+    print 'del_nodes_old', del_nodes_old
 
     # находим ноды для нового дерева
-    row_x = row['x1']
-    row_float = float(row_x)
+    row_float = float(row['x1'])
 
     try:
         next_line = main_file.next()
         next_row = get_row_dict(next_line)
         next_float = float(next_row['x1'])
     except StopIteration:
-            return None
+            return None, 1, 1
 
     add_nodes = [row, ]
 
@@ -73,77 +75,64 @@ def process_tree(row, main_file, err_del_nodes, del_nodes):
             next_row = get_row_dict(next_line)
             next_float = float(next_row['x1'])
         except StopIteration:
-            return None
+            break
+
+    print 'add_nodes', add_nodes
 
     x_middle = (next_float + row_float) / 2
     prev_tree = ALL_XS[-1][1]
-    prev_tree = AVLTree()
+
+    print 'prev_tree.val', prev_tree.root.val
 
     next_tree = AVLTree()
 
     # удаляем ноды битые, у которых х2 меньше, чем следующий х1
-    for err_d in err_del_nodes:
+    for err_d in err_del_nodes_old:
         next_tree.delete_versionly(prev_tree, err_d['val'])
 
-    err_del_nodes = [node for node in add_nodes if float(node['x2']) < next_float]
-    if err_del_nodes:
-        print 'Err_del_nodes exists', err_del_nodes
-
     # обработка нодов на добавление/удаление
-    to_replace, proc_add, proc_del = treatment_add_del(del_nodes, add_nodes)
+    to_replace, proc_del, proc_add = treatment_add_del(del_nodes_old, add_nodes)
 
-    # for (d, a) in to_replace:
-    #     next_tree.replace_versionly(prev_tree, d['val'], a)
+    print 'to_replace', to_replace
+    print 'proc_add', proc_add
+    print 'proc_del', proc_del
 
     for d in proc_del:
         next_tree.delete_versionly(prev_tree, d['val'])
+    for (d, a) in to_replace:
+        next_tree.replace_versionly(prev_tree, d['val'], a)
 
     # актуализируем все значения нодов в дереве
-    # prev_tree.update_vals(x_middle)
+    next_tree.update_vals(x_middle)
+    # актуализируем все значения новых нодов для добавления
+    update_dict_vals(add_nodes, x_middle)
+
+    # next_tree.check_next_tree(prev_tree, x_middle)
+    # если предыдущее дерево пусто, то без версионности
+    if prev_tree.root.val is None:
+        for a in proc_add:
+            next_tree.add(next_tree.root, a['val'], a['a'], a['b'], a['pol_id'])
+    # предыдущее дерево непусто
+    else:
+        # но если мы удаляли уже и новое дерево пусто, то без версионности
+        if next_tree.root.val is None and (del_nodes_old or err_del_nodes_old):
+            for a in proc_add:
+                next_tree.add(next_tree.root, a['val'], a['a'], a['b'], a['pol_id'])
+        # новое просто пусто(т.к. ничего не удадяли) или непусто, то версионность
+        else:
+            for a in proc_add:
+                next_tree.add_versionly(prev_tree, a)
+
+    ALL_XS.append([float(row_float), next_tree])
+
+    err_del_nodes = [node for node in add_nodes if float(node['x2']) < next_float]
+    if err_del_nodes:
+        print 'Err_del_nodes exists', row_float, err_del_nodes
+    del_nodes = [node for node in add_nodes if float(node['x2']) == next_float]
+
+    return next_row, err_del_nodes, del_nodes
 
 
-
-
-
-    ALL_XS.append([row_x, None])
-    # print 'prev_tree', prev_tree
-    # print 'nodes', map(lambda x: x['x1'], nodes)
-    # print 'nodes x2s', map(lambda x: float(x['x2']), nodes)
-    # print 'next_x1_float', next_float
-
-    # ноды будут удалены в след дереве
-    # delete_for_next = [node for node in add_nodes if float(node['x2']) <= next_float]
-    # print 'to_delete', map(lambda x: x['x1'], to_delete)
-
-    return next_row
-
-    # if not nodes:
-    #     raise Exception('Nodes is empty, HOLE!')
-    #
-    # x_middle = (n_x+curr_x)/2
-    # global deletions
-    # to_delete = deletions
-    #
-    # # обрабатываем ноды будущего дерева
-    # deletions, to_add = process_tree_nodes(nodes, x_middle, n_x)
-    #
-    #
-    #
-    # if not prev_tree:
-    #     tree = AVLTree()
-    #     for n in to_add:
-    #         tree.add(tree.root, n['val'], n['a'], n['b'], n['pol_id'])
-    #     # tree.show()
-    #     ref_to_tree = tree
-    # else:
-    #
-    #     next_tree = AVLTree()
-    #
-    #     print 'to_delete', to_delete
-    #     print 'to_add', to_add
-    #
-    #     process_add_del(to_delete, to_add, next_tree, prev_tree)
-    #
     #     # обновляем все значения в нодах
     #     next_tree.update_vals(next_tree.root, x_middle)
     #     # обнуляем флаги updates
@@ -169,37 +158,28 @@ if __name__ == "__main__":
         line = main_file.next()
         row = get_row_dict(line)
 
-        new_row = process_tree(row, main_file, [], [])
+        new_row, err_del_nodes, del_nodes = process_tree(row, main_file, [], [])
+
+    for (x, tree) in ALL_XS:
+        print x
+        l()
+        tree.show()
 
         # print new_row
 
-        while new_row is not None:
-            new_row = process_tree(new_row, main_file, [], [])
+        # while new_row is not None:
+        #     new_row, err_del_nodes, del_nodes = process_tree(new_row, main_file, err_del_nodes, del_nodes)
             # print new_row
 
-
-    # print 'next_x1', next_x1
-    # next_x1 = process_tree()
-    # print 'next_x1', next_x1
-    # # while next_x1 is not None:
-    # next_x1 = process_tree()
-
-    # print ALL_XS
-    # second_tree = ALL_XS[1][1]
-    # second_tree.show()
     # pol_id = find_polygon(second_tree.root, 1.5, 1.4)
-    # print pol_id
-    # second_tree.show()
 
+    # avl = AVLTree([3,2,4,1,5])
+    # avl.show()
     # l()
-    #
-    avl = AVLTree([3,2,4,1,5])
-    avl.show()
-    l()
-    avl2 = AVLTree()
-    avl2.replace_versionly(avl, 1, {'a': 'a1', 'b': 'b1', 'pid': 'pid'})
+    # avl2 = AVLTree()
+    # avl2.replace_versionly(avl, 1, {'a': 'a1', 'b': 'b1', 'pid': 'pid'})
     # avl2.show()
-    print avl2.root.left.left.pids
+    # print avl2.root.left.left.pids
 
 
     # avl.add(avl.root, 1)
