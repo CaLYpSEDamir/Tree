@@ -53,9 +53,6 @@ deletions = []
 
 def process_tree(row, main_file, err_del_nodes_old, del_nodes_old):
 
-    print 'err_del_nodes_old', err_del_nodes_old
-    print 'del_nodes_old', del_nodes_old
-
     # находим ноды для нового дерева
     row_float = float(row['x1'])
 
@@ -77,12 +74,8 @@ def process_tree(row, main_file, err_del_nodes_old, del_nodes_old):
         except StopIteration:
             break
 
-    print 'add_nodes', add_nodes
-
     x_middle = (next_float + row_float) / 2
     prev_tree = ALL_XS[-1][1]
-
-    print 'prev_tree.val', prev_tree.root.val
 
     next_tree = AVLTree()
 
@@ -92,10 +85,6 @@ def process_tree(row, main_file, err_del_nodes_old, del_nodes_old):
 
     # обработка нодов на добавление/удаление
     to_replace, proc_del, proc_add = treatment_add_del(del_nodes_old, add_nodes)
-
-    print 'to_replace', to_replace
-    print 'proc_add', proc_add
-    print 'proc_del', proc_del
 
     for d in proc_del:
         next_tree.delete_versionly(prev_tree, d['val'])
@@ -109,9 +98,16 @@ def process_tree(row, main_file, err_del_nodes_old, del_nodes_old):
 
     # next_tree.check_next_tree(prev_tree, x_middle)
     # если предыдущее дерево пусто, то без версионности
+
+    for p in proc_add:
+        print p['a'], p['b'], p['val']
+
     if prev_tree.root.val is None:
         for a in proc_add:
             next_tree.add(next_tree.root, a['val'], a['a'], a['b'], a['pol_id'])
+            next_tree.show()
+        print float(row_float)
+        next_tree.show()
     # предыдущее дерево непусто
     else:
         # но если мы удаляли уже и новое дерево пусто, то без версионности
@@ -160,16 +156,16 @@ if __name__ == "__main__":
 
         new_row, err_del_nodes, del_nodes = process_tree(row, main_file, [], [])
 
+        while new_row is not None:
+            new_row, err_del_nodes, del_nodes = process_tree(new_row, main_file, err_del_nodes, del_nodes)
+            print new_row
+
     for (x, tree) in ALL_XS:
         print x
-        l()
-        tree.show()
+        # l()
+        # tree.show()
 
         # print new_row
-
-        # while new_row is not None:
-        #     new_row, err_del_nodes, del_nodes = process_tree(new_row, main_file, err_del_nodes, del_nodes)
-            # print new_row
 
     # pol_id = find_polygon(second_tree.root, 1.5, 1.4)
 

@@ -125,7 +125,6 @@ def treatment_add_del(del_nodes, add_nodes):
     f_del = []  # deletions without pair to replace
     f_add = []  # addition without pair to replace
     f_replace = []
-    print 'pairs', pairs
     for pair in pairs:
         d, a = pair
 
@@ -138,7 +137,6 @@ def treatment_add_del(del_nodes, add_nodes):
                 f_del.append(i_d) if i_d else f_add.append(i_a)
 
     # если начало новых не совпало с концами удаления
-    print 'add_dict', add_dict
     for k, v in add_dict.iteritems():
         f_add.extend(v)
 
