@@ -188,12 +188,8 @@ class AVLTree(object):
             if orig.val is None:
                 raise Exception("Something went wrong! Tree is empty!")
             # копируем корень ориг дерева
-            print 'replace_versionly', orig
             copy.copy_node_attrs(orig, None)
-            print 'orig.b', orig.b
-            print 'copy.b', copy.b
             copy.tree_id = str(id(self))+' N'
-            print 'replace_versionly', copy
         # корень copy уже есть копия
         if copy.val == val:
             copy.a = new_info['a']
@@ -503,12 +499,6 @@ class AVLTree(object):
         return len(result)
 
     def update_vals(self, x_middle):
-        print 'show on update_vals next_tree'
-        print 80*'-'
-        print id(self)
-        self.show()
-        print 80*'-'
-
         """
         каждый раз в дереве обновляем значения, исходя из x_middle
         """
@@ -914,10 +904,13 @@ class AVLTree(object):
             node.val = min_val
 
     def get_node(self, root, val):
+        print 'get_node'
         r_v = root.val
+        print 'r_v', r_v, 'val', val
         if root.val is None:
             node = None
         else:
+
             if r_v > val:
                 if root.left:
                     node = self.get_node(root.left, val)
@@ -984,7 +977,6 @@ class AVLTree(object):
             raise Exception('No such element to delete!')
 
         node = self.get_node_versionly(orig_tree, val)
-        print node
         l, r, typ, par = node.left, node.right, node.type, node.parent
 
         if not l and not r:
