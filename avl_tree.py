@@ -43,7 +43,7 @@ class Node(object):
         self.w = orig_node.w
         self.new_in_v = True
         self.a = orig_node.a if a is None else a
-        self.b = orig_node.b if b is not None else b
+        self.b = orig_node.b if b is None else b
 
         self.pids = [x for x in orig_node.pids]
 
@@ -88,10 +88,6 @@ class AVLTree(object):
 
     def add(self, root, val, a=None, b=None, pol_id=None):
 
-        print 'a', a
-        print 'b', b
-        print 'pol_id', pol_id
-
         # initial root
         r_v = root.val
         if r_v is None:
@@ -100,7 +96,6 @@ class AVLTree(object):
             root.b = b
             root.pids.append(pol_id)
             root.tree_id = str(id(self))+' O'
-            print root
         else:
             if val < r_v:
                 if not root.left:
@@ -193,8 +188,12 @@ class AVLTree(object):
             if orig.val is None:
                 raise Exception("Something went wrong! Tree is empty!")
             # копируем корень ориг дерева
+            print 'replace_versionly', orig
             copy.copy_node_attrs(orig, None)
+            print 'orig.b', orig.b
+            print 'copy.b', copy.b
             copy.tree_id = str(id(self))+' N'
+            print 'replace_versionly', copy
         # корень copy уже есть копия
         if copy.val == val:
             copy.a = new_info['a']
@@ -504,8 +503,9 @@ class AVLTree(object):
         return len(result)
 
     def update_vals(self, x_middle):
-
+        print 'show on update_vals next_tree'
         print 80*'-'
+        print id(self)
         self.show()
         print 80*'-'
 
