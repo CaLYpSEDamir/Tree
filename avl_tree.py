@@ -904,9 +904,7 @@ class AVLTree(object):
             node.val = min_val
 
     def get_node(self, root, val):
-        print 'get_node'
         r_v = root.val
-        print 'r_v', r_v, 'val', val
         if root.val is None:
             node = None
         else:

@@ -49,7 +49,7 @@ def find_middle_x(x1, x2):
 
 def get_row_dict(line):
     keys = ['x1', 'y1', 'x2', 'y2', 'pol_id', 'a', 'b']
-    vals = line.split()
+    vals = line.split()[2:]
     row = {k: v for (k, v) in zip(keys, vals)}
     return row
 
