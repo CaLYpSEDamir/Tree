@@ -513,11 +513,18 @@ class AVLTree(object):
 
     @staticmethod
     def remove_update_flags(root):
+
         childs = [root, ]
         while childs:
+            for ch in childs:
+                ch.new_in_v = False
             new_childs = []
             for n in childs:
-                new_childs.extend([n.left, n.right])
+                l, r = n.left, n.right
+                if l and l.new_in_v:
+                    new_childs.append(l)
+                if r and r.new_in_v:
+                    new_childs.append(r)
             childs = filter(None, new_childs)
 
     @staticmethod
