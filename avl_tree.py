@@ -7,7 +7,7 @@ from helpers import calc_Y
 class Node(object):
 
     def __init__(self, val=None, type=None, parent=None,
-                 a=None, b=None, pid=None, tree_id=None):
+                 a=None, b=None, pid=None, tree_id=None, x2=None, y2=None):
         self.val = val
         self.w = 0
         self.left = None
@@ -25,10 +25,14 @@ class Node(object):
         # временно
         self.tree_id = tree_id
 
+        self.x2 = x2
+        self.y2 = y2
+
     def __str__(self):
         return ('(tree={3}, val={0}, type={1}, w={2},' +
-               'a={4}, b={5})').format(
-            self.val, self.type, self.w, self.tree_id, self.a, self.b)
+               'a={4}, b={5}, new_in_v={6}, x={7}, y={8})').format(
+            self.val, self.type, self.w, self.tree_id, self.a, self.b,
+            self.new_in_v, self.x2, self.y2)
 
     def copy_node_attrs(self, orig_node, parent_to_copy,
                         val=None, pid=None,
@@ -48,6 +52,9 @@ class Node(object):
         self.pids = [x for x in orig_node.pids]
 
         self.parent = parent_to_copy
+
+        self.x2 = orig_node.x2
+        self.y2 = orig_node.y2
 
         # при простом добаление, типы должны копироваться тоже,
         # но при ротации этого не надо!
@@ -86,7 +93,7 @@ class AVLTree(object):
     def get_min(self, root):
         return root.val if not root.left else self.get_min(root.left)
 
-    def add(self, root, val, a=None, b=None, pol_id=None):
+    def add(self, root, val, a=None, b=None, pol_id=None, x2=None, y2=None):
 
         # initial root
         r_v = root.val
@@ -96,21 +103,25 @@ class AVLTree(object):
             root.b = b
             root.pids.append(pol_id)
             root.tree_id = str(id(self))+' O'
+            root.x2 = x2
+            root.y2 = y2
         else:
             if val < r_v:
                 if not root.left:
-                    root.left = Node(val, 'l', root, a, b, pid=pol_id, tree_id=str(id(self))+' O')
+                    root.left = Node(val, 'l', root, a, b, pid=pol_id,
+                                     tree_id=str(id(self))+' O', x2=x2, y2=y2)
                     root.w -= 1
                     self.change_w_and_check(root)
                 else:
-                    self.add(root.left, val, a, b, pol_id)
+                    self.add(root.left, val, a, b, pol_id, x2=x2, y2=y2)
             elif r_v < val:
                 if not root.right:
-                    root.right = Node(val, 'r', root, a, b, pid=pol_id, tree_id=str(id(self))+' O')
+                    root.right = Node(val, 'r', root, a, b, pid=pol_id,
+                                      tree_id=str(id(self))+' O', x2=x2, y2=y2)
                     root.w += 1
                     self.change_w_and_check(root)
                 else:
-                    self.add(root.right, val, a, b, pol_id)
+                    self.add(root.right, val, a, b, pol_id, x2=x2, y2=y2)
             else:
                 # добавляем второй id полигона
                 root.pids.append(pol_id)
@@ -126,6 +137,8 @@ class AVLTree(object):
         a = new_node_info['a']
         b = new_node_info['b']
         pid = new_node_info['pol_id']
+        x2 = new_node_info['x2']
+        y2 = new_node_info['y2']
 
         orig = orig_tree.root
         copy = self.root
@@ -149,6 +162,8 @@ class AVLTree(object):
             # уже иммеется значение в дереве
             if child.val == val:
                 child.pids.append(pid)
+                child.x2 = x2
+                child.y2 = y2
                 return
             # создание копии ноды
             if not child.new_in_v:
@@ -162,7 +177,8 @@ class AVLTree(object):
         else:
             new_node = Node(val=val, type=side, parent=copy,
                             a=a, b=b, pid=pid,
-                            tree_id=str(id(self))+' N')
+                            tree_id=str(id(self))+' N',
+                            x2=x2, y2=y2)
             new_node.new_in_v = True
             new_node.tree_id = str(id(self))+' N'
             if side == 'l':
@@ -194,6 +210,8 @@ class AVLTree(object):
         if copy.val == val:
             copy.a = new_info['a']
             copy.b = new_info['b']
+            copy.x2 = new_info['x2']
+            copy.y2 = new_info['y2']
             copy.pids.append(new_info['pol_id'])
             return
 
@@ -215,6 +233,8 @@ class AVLTree(object):
                 # создание копии ноды
                 copy.a = new_info['a']
                 copy.b = new_info['b']
+                copy.x2 = new_info['x2']
+                copy.y2 = new_info['y2']
                 copy.pids.append(new_info['pol_id'])
                 break
             child = copy.left if copy.val > val else copy.right
@@ -578,6 +598,8 @@ class AVLTree(object):
                 +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
                 +('(N)' if x_ is None else
                   '(P:'+str(getattr(getattr(x_, 'parent', None), 'val', None) or 'N')+')')
+                +('(x2=')+(getattr(x_, 'x2', None) or 'N')[:8]+(')')
+                +('(y2=')+(getattr(x_, 'y2', None) or 'N')[:8]+(')')
                 )
                for j, (x_, y) in enumerate(res)
             )
