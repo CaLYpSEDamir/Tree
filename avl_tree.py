@@ -518,6 +518,19 @@ class AVLTree(object):
 
         return len(result)
 
+    @staticmethod
+    def get_all_nodes_vals(root):
+        result = []
+        childs = [root, ]
+        while childs:
+            new_childs = []
+            for n in childs:
+                result.append(n.val)
+                new_childs.extend([n.left, n.right])
+            childs = filter(None, new_childs)
+
+        return result
+
     def update_vals(self, x_middle):
         """
         каждый раз в дереве обновляем значения, исходя из x_middle
@@ -589,15 +602,16 @@ class AVLTree(object):
         else:
             s = [0, ]
         res = zip(li, s)
-        gen = (((y-8 if j else y)*' '+str(getattr(x_, 'val', None) or 'N') +
-                '('+str(getattr(x_, 'w', 'N'))+')' +
-                '('+str(getattr(x_, 'type', None) or 'N')+')'
-                +'('+str(getattr(x_, 'a', 'N'))+')'
-                +'('+str(getattr(x_, 'b', 'N'))+')'
-                +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
-                +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
-                +('(N)' if x_ is None else
-                  '(P:'+str(getattr(getattr(x_, 'parent', None), 'val', None) or 'N')+')')
+        gen = (((y-8 if j else y)*' '
+                +str(getattr(x_, 'val', None) or 'N')
+                # +'('+str(getattr(x_, 'w', 'N'))+')'
+                # +'('+str(getattr(x_, 'type', None) or 'N')+')'
+                # +'('+str(getattr(x_, 'a', 'N'))+')'
+                # +'('+str(getattr(x_, 'b', 'N'))+')'
+                # +'('+str(getattr(x_, 'tree_id', None) or 'N') +')'
+                # +('(N)' if x_ is None else ('(T)' if x_.new_in_v else '(F)'))
+                # +('(N)' if x_ is None else
+                #   '(P:'+str(getattr(getattr(x_, 'parent', None), 'val', None) or 'N')+')')
                 +('(x2=')+(getattr(x_, 'x2', None) or 'N')[:8]+(')')
                 +('(y2=')+(getattr(x_, 'y2', None) or 'N')[:8]+(')')
                 )
@@ -998,6 +1012,8 @@ class AVLTree(object):
 
     def delete_versionly(self, orig_tree, val):
 
+        print 'all_vals', AVLTree.get_all_nodes_vals(orig_tree.root)
+
         # проверяем на наличие значения в ориг дереве
         node_exists = orig_tree.get_node(orig_tree.root, val)
         if not node_exists:
@@ -1064,7 +1080,9 @@ class AVLTree(object):
         else:
             # берем минимум, удаляем минимум, заменяем ту ноду значением из минимума
             min_val = self.get_min(r)
-            self.show()
+            print 'min_val', min_val  # 45.7516111418
+            print node
+            # self.show()
             self.delete_versionly(orig_tree, min_val)
             node.val = min_val
 

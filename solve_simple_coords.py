@@ -116,8 +116,8 @@ def process_tree(row, main_file, err_del_nodes_old, del_nodes_old, is_holl):
     else:
         # удаляем ноды битые, у которых х2 меньше, чем следующий х1
         for err_d in err_del_nodes_old:
-            # print 'delete err_del_node', float(err_d['val'])
-            next_tree.delete_versionly(prev_tree, float(err_d['val']))
+            print 'delete err_del_node', float(err_d['val'])
+            next_tree.delete_versionly(prev_tree, float(err_d['val'])) # 45.7427962225
 
         print 'del_nodes_old', del_nodes_old
 
